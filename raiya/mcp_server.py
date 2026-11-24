@@ -51,7 +51,7 @@ except ImportError as e:  # pragma: no cover - 環境依存
     ) from e
 
 SERVER_NAME = "raiya"
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = "0.1.0b1"
 DEFAULT_HTTP_HOST = "127.0.0.1"
 DEFAULT_HTTP_PORT = 8765
 HTTP_PATH = "/mcp"

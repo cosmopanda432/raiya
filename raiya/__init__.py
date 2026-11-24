@@ -20,4 +20,4 @@ from .engine import MemoryEngine
 from .sansho import Turn
 
 __all__ = ["MemoryEngine", "Turn", "__version__"]
-__version__ = "0.1.0"
+__version__ = "0.1.0b1"

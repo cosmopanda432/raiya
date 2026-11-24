@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "raiya"
-version = "0.1.0"
+version = "0.1.0b1"
 description = "頼耶 -- 捏造を構造的に通さない記憶エンジン (唯識の三能変を処理パイプラインにした記憶ライブラリ)"
 readme = "README.md"
 requires-python = ">=3.9"

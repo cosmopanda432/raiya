@@ -689,7 +689,7 @@ exit 0 = 処理した (skip と内部失敗を含む)、exit 2 = 契約拒否 (`
   その入力の版を上げる変更になる。
 - 開いた列挙 (足すのは非破壊): `decision`、`skipped`、hooks の outcome。閉じた列挙 (足すのは破壊的): `sansho` の値、
   `VALID_KINDS`。
-- 版番号は既存のものだけ: パッケージ `0.1.0` (`pyproject.toml` / `raiya.__version__` / `SERVER_VERSION`)、
+- 版番号は既存のものだけ: パッケージ `0.1.0b1` (`pyproject.toml` / `raiya.__version__` / `SERVER_VERSION`)、
   `config.yaml` の `version: 1`、`raiya-hook` の `contract_version: 1`。台帳の行・種子に版キーは置かない。
 
 ## 環境変数
