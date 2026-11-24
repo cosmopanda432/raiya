@@ -1,0 +1,391 @@
+{
+ "note": "spec §8 / §11.7。本番種子 (recall_seeds_20261017.json) への kind/project の割り当て (旧種子は project を持たないので fixture 側で割り当てる) と想起クエリ。#26 の縁は E4 のため主題語に置き換える (spec §5.2)。",
+ "annotations": {
+  "4": {
+   "kind": "決定",
+   "project": "/home/dev/raiya"
+  },
+  "5": {
+   "kind": "決定",
+   "project": "/home/dev/raiya"
+  },
+  "7": {
+   "kind": "決定",
+   "project": "/home/dev/raiya"
+  },
+  "68": {
+   "kind": "回避策",
+   "project": "/home/dev/raiya"
+  },
+  "2": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "18": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "31": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "49": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "50": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "57": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "59": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "65": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "66": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "67": {
+   "kind": "性向",
+   "project": "/home/dev/raiya"
+  },
+  "20": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "24": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "25": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "26": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "28": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "36": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "38": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "46": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "47": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "58": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "64": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "70": {
+   "kind": "決定",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "56": {
+   "kind": "所在",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "9": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "10": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "11": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "22": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "27": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "29": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "33": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "34": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "35": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "37": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "39": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "40": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "41": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "42": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "43": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "44": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "45": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "48": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "51": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "52": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "53": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "54": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "55": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "60": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "61": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "62": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "63": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "69": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "71": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "72": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "73": {
+   "kind": "性向",
+   "project": "/home/dev/cosmicanalysis"
+  },
+  "1": {
+   "kind": "性向",
+   "project": null
+  },
+  "6": {
+   "kind": "性向",
+   "project": null
+  },
+  "8": {
+   "kind": "性向",
+   "project": null
+  },
+  "12": {
+   "kind": "性向",
+   "project": null
+  },
+  "13": {
+   "kind": "性向",
+   "project": null
+  },
+  "14": {
+   "kind": "性向",
+   "project": null
+  },
+  "15": {
+   "kind": "性向",
+   "project": null
+  },
+  "16": {
+   "kind": "性向",
+   "project": null
+  },
+  "17": {
+   "kind": "性向",
+   "project": null
+  },
+  "19": {
+   "kind": "性向",
+   "project": null
+  },
+  "21": {
+   "kind": "性向",
+   "project": null
+  },
+  "23": {
+   "kind": "性向",
+   "project": null
+  },
+  "30": {
+   "kind": "性向",
+   "project": null
+  },
+  "32": {
+   "kind": "性向",
+   "project": null
+  }
+ },
+ "overrides": {
+  "26": {
+   "conditions": [
+    "沼矛",
+    "神器"
+   ]
+  }
+ },
+ "queries": [
+  {
+   "label": "raiya_decisions",
+   "project": "/home/dev/raiya",
+   "prompt": "統合呼び出しの封じ込めとサブエージェント報告の除外をどう実装したか",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [
+    4,
+    5,
+    7
+   ],
+   "distractor_seed_ids": []
+  },
+  {
+   "label": "raiya_workaround",
+   "project": "/home/dev/raiya",
+   "prompt": "LLM を３秒ごとに呼ぶとサイバー攻撃と誤認される件",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [
+    68
+   ],
+   "distractor_seed_ids": []
+  },
+  {
+   "label": "kojiki_decisions",
+   "project": "/home/dev/cosmicanalysis",
+   "prompt": "沼矛を神器として扱うか。二柱の起動経路は天神からの 1 を受けて動く",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [
+    20,
+    25
+   ],
+   "distractor_seed_ids": [
+    26
+   ]
+  },
+  {
+   "label": "kojiki_bios",
+   "project": "/home/dev/cosmicanalysis",
+   "prompt": "OS の説明に BIOS が出てこない",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [
+    24,
+    47
+   ],
+   "distractor_seed_ids": []
+  },
+  {
+   "label": "raiya_with_kojiki_words",
+   "project": "/home/dev/raiya",
+   "prompt": "古事記の原文と沼矛と神器の話を raiya で",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [],
+   "distractor_seed_ids": [
+    20,
+    26,
+    9,
+    29
+   ]
+  },
+  {
+   "label": "raiya_disposition_only",
+   "project": "/home/dev/raiya",
+   "prompt": "コマンドは指定された順番どおりに実行して。再開ポイントを読んで次の一手を",
+   "context": [],
+   "session_start": false,
+   "expected_seed_ids": [],
+   "distractor_seed_ids": [
+    1,
+    8,
+    12,
+    14,
+    15
+   ]
+  },
+  {
+   "label": "raiya_session_start",
+   "project": "/home/dev/raiya",
+   "prompt": "続きをやろう",
+   "context": [],
+   "session_start": true,
+   "expected_seed_ids": [],
+   "distractor_seed_ids": []
+  }
+ ]
+}

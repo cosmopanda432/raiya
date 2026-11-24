@@ -1,0 +1,51 @@
+## raiya の設定ファイルの雛形 (spec: 2026-10-23-config-file-design.md)
+## anthropic,claude-haiku-5-5,~/.raiyaの推奨で設定されています
+##
+## 置き場所 (最初に当たった 1 つだけを読む):
+##   1. 環境変数 RAIYA_CONFIG の絶対パス (空文字なら設定ファイルを使わない)
+##   2. $XDG_CONFIG_HOME/raiya/config.yaml
+##   3. ~/.config/raiya/config.yaml
+## プロジェクト内や state dir の中は探さない。
+##
+## 使い方:
+##   mkdir -p ~/.config/raiya && cp config.example.yaml ~/.config/raiya/config.yaml
+## そのままでは何も変わらない。使う行の先頭の "# " を外す。
+##
+## 優先順位: 環境変数 (空でない値) > このファイル > 既定。
+## API キー・RAIYA_HOOK_ACTIVE・RAIYA_HOOKS・RAIYA_CONFIG は環境変数だけ (ここに書くと unknown_key)。
+## 不正なキーはそのキーだけ捨てる。LLM を呼ぶ経路 (propose / consolidate) は不正なキーがあると止まる。
+
+version: 1
+
+## 記憶 (state) の置き場所。~ は展開され、絶対パスであること。          <- RAIYA_STATE_DIR
+## 既定は ./state (起動した場所からの相対) なので、hooks を使うなら決めておくのがよい。
+state_dir: ~/.raiya
+
+## 性向 (好み・方針) を想起に出すか。                                    <- RAIYA_INJECT_DISPOSITIONS
+## 既定 false。環境変数 RAIYA_INJECT_DISPOSITIONS=0 はここの true も打ち消す。
+# inject_dispositions: false
+
+## llm: は中身が空でもよい (コメントのままの行だけなら既定)。下の行は "# " だけを外す (字下げは残す)。
+llm:
+  ## LLM の呼び先: openai-api (既定) | claude-cli | anthropic-api | command   <- RAIYA_BACKEND
+  backend: anthropic-api
+
+  ## 対話・内観に使うモデル。                                             <- RAIYA_MODEL
+  ## 既定: openai-api は gpt-6-luna、anthropic-api は claude-haiku-5-5、
+  ## claude-cli は指定しない (claude の既定)。
+  model: claude-haiku-5-5
+
+  ## 記憶の提案 (propose / consolidate) に使うモデル。                     <- RAIYA_PROPOSE_MODEL
+  ## 既定: openai-api は gpt-6-luna、claude-cli は haiku。
+  ## anthropic-api では使われない (propose も model、無ければ claude-haiku-5-5 を使う)。
+  propose_model: claude-haiku-5-5
+
+  ## backend: command のときに実行するシェルコマンド (プロンプトは stdin)。  <- RAIYA_LLM_CMD
+  # command: null
+
+  ## LLM 呼び出し 1 回のタイムアウト秒。0 < x <= 10**9。既定 60。(このファイルだけ)
+  # timeout_sec: 60
+
+  ## openai-api が送る max_completion_tokens。推論トークンもこの上限に含まれる。
+  ## 出力上限の低いモデルに替えたら下げる。>= 1。既定 64000。(このファイルだけ・openai-api だけ)
+  # openai_max_completion_tokens: 64000

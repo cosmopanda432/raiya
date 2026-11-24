@@ -1,0 +1,69 @@
+{
+ "name": "pi_compact_budget",
+ "measured_at": "2026-10-28T03:28:37+00:00",
+ "purpose": "raiya-pi roadmap 2 Task 1: budget_chars と E-1 既定閾値の工学値の根拠",
+ "method": {
+  "budget_chars": "~/.raiya/raiya.db (ledger id 1-154) を scratchpad に複製し、RAIYA_STATE_DIR をそこへ向けて raiya-hook compact (v1.1.0, aa5bc8b) を budget_chars 無しで 4 窓に流した。prompt は空、cwd は /home/dev/codecli。",
+  "e1_threshold": "pi 1.3.0 (npm pin) の core/compaction/compaction.js shouldCompact = contextTokens > contextWindow - reserveTokens (settings-defaults reserveTokens 16384)。getContextUsage().percent = tokens/contextWindow*100 で、両者は同じ estimateProjectedContextTokens を使う (agent-session.js)。実モデルは使っていない (導出)。"
+ },
+ "raiya_hook": "raiya-hook-v1.1.0 (aa5bc8b)",
+ "compact_runs": {
+  "10": {
+   "window_ids": [
+    145,
+    154
+   ],
+   "keep": 5,
+   "chars": 3425,
+   "elided_runs": 1,
+   "per_kept_turn_chars": 685
+  },
+  "30": {
+   "window_ids": [
+    125,
+    154
+   ],
+   "keep": 8,
+   "chars": 5039,
+   "elided_runs": 4,
+   "per_kept_turn_chars": 630
+  },
+  "50": {
+   "window_ids": [
+    105,
+    154
+   ],
+   "keep": 14,
+   "chars": 7970,
+   "elided_runs": 8,
+   "per_kept_turn_chars": 569
+  },
+  "154": {
+   "window_ids": [
+    1,
+    154
+   ],
+   "keep": 34,
+   "chars": 19939,
+   "elided_runs": 24,
+   "per_kept_turn_chars": 586
+  }
+ },
+ "pi_defaults": {
+  "reserveTokens": 16384,
+  "keepRecentTokens": 20000,
+  "summary_max_tokens": "floor(0.8*reserveTokens)=13107",
+  "estimateTokens": "ceil(chars/4)"
+ },
+ "threshold_trigger_percent": {
+  "128k": 87.5,
+  "200k": 91.8,
+  "1M": 98.4,
+  "32k": 50.0
+ },
+ "decided": {
+  "RAIYA_PI_CONTEXT_WARN_PERCENT_default": 80,
+  "COMPACT_BUDGET_CHARS": 8000,
+  "reasoning": "kept turn は中央値 ~500 字・平均 ~600 字・最大 2367 字。上限無しだと 154 往復の窓で 34 往復 19939 字残り、pi の要約枠 13107 token (日本語は ~1 字/token) を超える。8000 字 ≈ 14 往復 (50 往復窓の実測 7970 字 / keep 14 と一致) で、Task 6 の機械項目の分を残して枠の 6 割。E-1 の 80% は 128k 窓の発火点 87.5% の約 9k token 手前 (長い 1 往復分)。32k 窓では発火点 50% なので既定では間に合わない (contextWindow は ContextUsage にあるので、要るときはそこから導く)。どちらも工学値。"
+ }
+}

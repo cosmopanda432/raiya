@@ -1,0 +1,10 @@
+{
+  "_note": "手書き。hook が読む欄 (hook_event_name/session_id/transcript_path/cwd/prompt 等) から作った形で、実際の Claude Code セッションから採取したものではない。 サブエージェントの hook が親と同じ session_id を持つ点は REASONED (推定・未検証)。",
+  "hook_event_name": "UserPromptSubmit",
+  "agent_id": "agent-fixture",
+  "prompt": "親から委任された作業の指示文です",
+  "session_id": "fixture-session",
+  "transcript_path": "/nonexistent/transcript.jsonl",
+  "cwd": "/nonexistent/project",
+  "permission_mode": "default"
+}

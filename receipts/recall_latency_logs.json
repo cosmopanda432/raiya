@@ -1,0 +1,497 @@
+{
+  "generated_at": "2026-10-27T13:19:47.430549+00:00",
+  "environment": {
+    "python": "3.12.3",
+    "system": "Linux",
+    "release": "6.8.0-147-generic",
+    "machine": "x86_64",
+    "cpu_count": 2
+  },
+  "params": {
+    "n": 1000,
+    "variant": "nopath",
+    "imprint_log_rows": [
+      0,
+      1000,
+      10000,
+      50000
+    ],
+    "manas_log_rows": [
+      0,
+      416,
+      1000
+    ],
+    "combos": [
+      [
+        10000,
+        1000
+      ],
+      [
+        50000,
+        1000
+      ]
+    ],
+    "quiet_combos": [
+      [
+        0,
+        0
+      ],
+      [
+        10000,
+        0
+      ],
+      [
+        10000,
+        1000
+      ]
+    ],
+    "repeats": 7,
+    "hook_repeats": 5,
+    "rng_seed": 20261024,
+    "life": 52,
+    "imprint_row_bytes_target": 1100,
+    "manas_row_bytes_target": 3100,
+    "row_jitter": 0.3,
+    "with_hook": true,
+    "breakdown_note": "load_ms = 区間の入口の読み (全ストア)、flush_ms = 差分の書き込み (変わった行だけ UPDATE / 追記行だけ INSERT)、commit_ms = COMMIT (synchronous=FULL の fsync を含む)。rest_ms = 回ごとの (計器つき recall - (load + flush + commit)) の中央値。recall は書く区間を 1 つだけ持つ (sections=1)。manas_log の追記 1 行と、発芽した種子の観測欄の更新だけが書かれる。recall は imprint_log を読まず書かない。germinating=true の行は入力を種子の縁から作るので必ず発芽し、発芽した種子の観測欄の更新を含む側を示す。germinating=false の行は縁に当たらない入力で、発芽しない側を示す。"
+  },
+  "budget": {
+    "soft_ms": 1000,
+    "hard_ms": 10000,
+    "source": {
+      "soft": "README.md:218/:314 「<1秒目安」、raiya/engine.py 「<1 秒の予算」",
+      "hard": "raiya/hooks/settings.example.json の hook timeout 10 s、docs/設計書.md「同期・timeout 10s」"
+    }
+  },
+  "rows": [
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 0,
+      "manas_log_rows": 0,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 52.008,
+        "max": 60.657
+      },
+      "recall_ms": {
+        "median": 42.016,
+        "max": 44.676
+      },
+      "stat_calls": 0,
+      "narrative_len": 2054,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.0
+      },
+      "hook_ms": {
+        "median": 114.22,
+        "max": 114.239
+      },
+      "db_bytes": 974848,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 18.304,
+        "flush_ms": 8.626,
+        "commit_ms": 3.884,
+        "sections": 1,
+        "instrumented_recall_ms": 41.339,
+        "rest_ms": 11.29
+      },
+      "imprint_log_body_bytes": 0,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 1000,
+      "manas_log_rows": 0,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 52.253,
+        "max": 73.896
+      },
+      "recall_ms": {
+        "median": 42.67,
+        "max": 51.371
+      },
+      "stat_calls": 0,
+      "narrative_len": 2054,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.974
+      },
+      "hook_ms": {
+        "median": 114.26,
+        "max": 114.303
+      },
+      "db_bytes": 1896448,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 18.046,
+        "flush_ms": 8.699,
+        "commit_ms": 4.186,
+        "sections": 1,
+        "instrumented_recall_ms": 43.137,
+        "rest_ms": 11.844
+      },
+      "imprint_log_body_bytes": 796502,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 10000,
+      "manas_log_rows": 0,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 60.958,
+        "max": 87.306
+      },
+      "recall_ms": {
+        "median": 52.064,
+        "max": 53.122
+      },
+      "stat_calls": 0,
+      "narrative_len": 2054,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.855
+      },
+      "hook_ms": {
+        "median": 114.269,
+        "max": 114.299
+      },
+      "db_bytes": 10076160,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 18.054,
+        "flush_ms": 8.818,
+        "commit_ms": 12.293,
+        "sections": 1,
+        "instrumented_recall_ms": 51.013,
+        "rest_ms": 11.415
+      },
+      "imprint_log_body_bytes": 7918099,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 50000,
+      "manas_log_rows": 0,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 88.98,
+        "max": 92.627
+      },
+      "recall_ms": {
+        "median": 77.611,
+        "max": 80.942
+      },
+      "stat_calls": 0,
+      "narrative_len": 2054,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.975
+      },
+      "hook_ms": {
+        "median": 164.451,
+        "max": 164.49
+      },
+      "db_bytes": 46641152,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 17.652,
+        "flush_ms": 8.875,
+        "commit_ms": 42.125,
+        "sections": 1,
+        "instrumented_recall_ms": 79.877,
+        "rest_ms": 11.391
+      },
+      "imprint_log_body_bytes": 39643797,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 0,
+      "manas_log_rows": 416,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 59.555,
+        "max": 92.691
+      },
+      "recall_ms": {
+        "median": 47.573,
+        "max": 48.473
+      },
+      "stat_calls": 0,
+      "narrative_len": 1898,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.026
+      },
+      "hook_ms": {
+        "median": 114.274,
+        "max": 114.346
+      },
+      "db_bytes": 2678784,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 21.511,
+        "flush_ms": 9.027,
+        "commit_ms": 5.785,
+        "sections": 1,
+        "instrumented_recall_ms": 47.54,
+        "rest_ms": 11.473
+      },
+      "imprint_log_body_bytes": 0,
+      "manas_log_body_bytes": 1230612
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 0,
+      "manas_log_rows": 1000,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 75.026,
+        "max": 98.303
+      },
+      "recall_ms": {
+        "median": 57.23,
+        "max": 92.867
+      },
+      "stat_calls": 0,
+      "narrative_len": 1898,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.93
+      },
+      "hook_ms": {
+        "median": 164.364,
+        "max": 164.402
+      },
+      "db_bytes": 5074944,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 27.558,
+        "flush_ms": 10.559,
+        "commit_ms": 7.745,
+        "sections": 1,
+        "instrumented_recall_ms": 57.412,
+        "rest_ms": 11.818
+      },
+      "imprint_log_body_bytes": 0,
+      "manas_log_body_bytes": 2934613
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 10000,
+      "manas_log_rows": 1000,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 81.614,
+        "max": 123.923
+      },
+      "recall_ms": {
+        "median": 67.016,
+        "max": 109.892
+      },
+      "stat_calls": 0,
+      "narrative_len": 1898,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.999
+      },
+      "hook_ms": {
+        "median": 164.369,
+        "max": 164.492
+      },
+      "db_bytes": 14176256,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 28.062,
+        "flush_ms": 10.673,
+        "commit_ms": 16.643,
+        "sections": 1,
+        "instrumented_recall_ms": 67.719,
+        "rest_ms": 11.907
+      },
+      "imprint_log_body_bytes": 7918099,
+      "manas_log_body_bytes": 2934613
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 50000,
+      "manas_log_rows": 1000,
+      "germinating": true,
+      "construct_recall_ms": {
+        "median": 111.465,
+        "max": 305.219
+      },
+      "recall_ms": {
+        "median": 88.534,
+        "max": 94.187
+      },
+      "stat_calls": 0,
+      "narrative_len": 1898,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 3.958
+      },
+      "hook_ms": {
+        "median": 164.438,
+        "max": 164.666
+      },
+      "db_bytes": 50741248,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 28.879,
+        "flush_ms": 10.625,
+        "commit_ms": 40.809,
+        "sections": 1,
+        "instrumented_recall_ms": 92.221,
+        "rest_ms": 12.077
+      },
+      "imprint_log_body_bytes": 39643797,
+      "manas_log_body_bytes": 2934613
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 0,
+      "manas_log_rows": 0,
+      "germinating": false,
+      "construct_recall_ms": {
+        "median": 48.16,
+        "max": 83.647
+      },
+      "recall_ms": {
+        "median": 39.111,
+        "max": 61.602
+      },
+      "stat_calls": 0,
+      "narrative_len": 1763,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.047
+      },
+      "hook_ms": {
+        "median": 114.25,
+        "max": 114.309
+      },
+      "db_bytes": 974848,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 17.518,
+        "flush_ms": 8.531,
+        "commit_ms": 3.475,
+        "sections": 1,
+        "instrumented_recall_ms": 38.501,
+        "rest_ms": 8.968
+      },
+      "imprint_log_body_bytes": 0,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 10000,
+      "manas_log_rows": 0,
+      "germinating": false,
+      "construct_recall_ms": {
+        "median": 56.717,
+        "max": 91.799
+      },
+      "recall_ms": {
+        "median": 47.95,
+        "max": 87.943
+      },
+      "stat_calls": 0,
+      "narrative_len": 1763,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.046
+      },
+      "hook_ms": {
+        "median": 114.275,
+        "max": 115.672
+      },
+      "db_bytes": 10076160,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 17.226,
+        "flush_ms": 8.501,
+        "commit_ms": 12.098,
+        "sections": 1,
+        "instrumented_recall_ms": 47.248,
+        "rest_ms": 9.212
+      },
+      "imprint_log_body_bytes": 7918099,
+      "manas_log_body_bytes": 0
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "imprint_log_rows": 10000,
+      "manas_log_rows": 1000,
+      "germinating": false,
+      "construct_recall_ms": {
+        "median": 80.263,
+        "max": 129.302
+      },
+      "recall_ms": {
+        "median": 64.098,
+        "max": 103.753
+      },
+      "stat_calls": 0,
+      "narrative_len": 1763,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.002
+      },
+      "hook_ms": {
+        "median": 164.399,
+        "max": 164.706
+      },
+      "db_bytes": 14176256,
+      "exceeds_group_ms": false,
+      "exceeds_soft": false,
+      "breakdown": {
+        "load_ms": 27.789,
+        "flush_ms": 10.146,
+        "commit_ms": 16.467,
+        "sections": 1,
+        "instrumented_recall_ms": 63.2,
+        "rest_ms": 9.788
+      },
+      "imprint_log_body_bytes": 7918099,
+      "manas_log_body_bytes": 2934613
+    }
+  ]
+}

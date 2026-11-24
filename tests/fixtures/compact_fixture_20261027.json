@@ -1,0 +1,374 @@
+{
+ "note": "compact slice 3 fixture (spec 2026-10-27-compact-design.md §8). project P=/home/dev/p, Q=/home/dev/q. ledger: S1 = 1,3,4,6,8,9 / S2 = 2,5,7,10. Seeds (a)-(g) = ids 1-7. cases = the five receipt cases (budget_chars: null = unlimited; window false = empty window).",
+ "life": 3,
+ "project": "/home/dev/p",
+ "text": "猫の散歩と餌と鳥の話",
+ "window": [
+  1,
+  3,
+  4,
+  6,
+  8,
+  9,
+  4,
+  99
+ ],
+ "seeds": [
+  {
+   "id": 1,
+   "content": "種子1",
+   "strength": 1,
+   "conditions": [
+    "猫",
+    "散歩"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "kind": "決定",
+   "project": "/home/dev/p",
+   "superseded_by": null,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 4
+    },
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 8
+    },
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 5
+    },
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": null
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 2,
+   "content": "種子2",
+   "strength": 2,
+   "conditions": [
+    "餌"
+   ],
+   "polarity": "無記",
+   "sansho": "依他起",
+   "kind": "回避策",
+   "project": "/home/dev/p",
+   "superseded_by": null,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 4
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 3,
+   "content": "種子3",
+   "strength": 1,
+   "conditions": [],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "kind": "再開点",
+   "project": "/home/dev/p",
+   "superseded_by": null,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 6
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 4,
+   "content": "種子4",
+   "strength": 1,
+   "conditions": [
+    "散歩"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "kind": "所在",
+   "project": "/home/dev/p",
+   "superseded_by": null,
+   "withdrawn": {
+    "by": "太郎",
+    "at": "2026-10-25T00:00:00+00:00",
+    "reason": "誤り",
+    "ledger_ids": [],
+    "spans": [],
+    "life": 1,
+    "replaced_by": null
+   },
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 1
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 5,
+   "content": "種子5",
+   "strength": 1,
+   "conditions": [
+    "猫"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "kind": "決定",
+   "project": "/home/dev/p",
+   "superseded_by": 1,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 9
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 6,
+   "content": "種子6",
+   "strength": 1,
+   "conditions": [
+    "猫"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "kind": "決定",
+   "project": "/home/dev/q",
+   "superseded_by": null,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 8
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  },
+  {
+   "id": 7,
+   "content": "種子7",
+   "strength": 2,
+   "conditions": [
+    "猫",
+    "散歩",
+    "鳥"
+   ],
+   "polarity": "無記",
+   "sansho": "依他起",
+   "kind": "決定",
+   "project": "/home/dev/p",
+   "superseded_by": null,
+   "withdrawn": null,
+   "evidences": [
+    {
+     "life": 1,
+     "source": "user",
+     "span": "x",
+     "ledger_id": 9
+    }
+   ],
+   "history": [],
+   "planted_at": 1,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 0
+  }
+ ],
+ "ledger_rows": [
+  {
+   "id": 1,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 1.0,
+   "user_text": "猫の散歩の時間を決めたい",
+   "assistant_text": "朝と夕方にしましょう",
+   "grounding_text": "猫の散歩の時間を決めたい",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 2,
+   "life": 1,
+   "session_id": "S2",
+   "ts": 2.0,
+   "user_text": "別の話題です",
+   "assistant_text": "了解です",
+   "grounding_text": "別の話題です",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 3,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 3.0,
+   "user_text": "<pasted_content id=\"p1\">ログの全文</pasted_content id=\"p1\">",
+   "assistant_text": "受け取りました",
+   "grounding_text": "",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 4,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 4.0,
+   "user_text": "猫の餌を替える",
+   "assistant_text": "どの餌にしますか",
+   "grounding_text": "猫の餌を替える",
+   "project": "/home/dev/p",
+   "tool_refs": [
+    {
+     "kind": "file",
+     "path": "/home/dev/p/feed.py",
+     "line_start": 10,
+     "line_end": 20
+    },
+    {
+     "kind": "command",
+     "name": "git"
+    },
+    {
+     "kind": "file",
+     "path": "relative.py"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "life": 1,
+   "session_id": "S2",
+   "ts": 5.0,
+   "user_text": "S2 の続き",
+   "assistant_text": "はい",
+   "grounding_text": "S2 の続き",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 6,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 6.0,
+   "user_text": "古い行の発話 <pasted_content id=\"q9\">秘密の貼り付け</pasted_content id=\"q9\"> です",
+   "assistant_text": "古い形式です",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 7,
+   "life": 1,
+   "session_id": "S2",
+   "ts": 7.0,
+   "user_text": "S2 の三つ目",
+   "assistant_text": "はい",
+   "grounding_text": "S2 の三つ目",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 8,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 8.0,
+   "user_text": "長い返答を頼む",
+   "assistant_text": "先頭の部分\n<elided 120 chars>\n末尾の部分",
+   "grounding_text": "長い返答を頼む",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 9,
+   "life": 1,
+   "session_id": "S1",
+   "ts": 9.0,
+   "user_text": "最後の発話",
+   "assistant_text": "終わりです",
+   "grounding_text": "最後の発話",
+   "project": "/home/dev/p"
+  },
+  {
+   "id": 10,
+   "life": 1,
+   "session_id": "S2",
+   "ts": 10.0,
+   "user_text": "S2 の最後",
+   "assistant_text": "おわり",
+   "grounding_text": "S2 の最後",
+   "project": "/home/dev/p"
+  }
+ ],
+ "cases": [
+  {
+   "label": "上限なし",
+   "budget_chars": null
+  },
+  {
+   "label": "①の途中で切れる予算",
+   "budget_chars": 200
+  },
+  {
+   "label": "③だけが落ちる予算",
+   "budget_chars": 330
+  },
+  {
+   "label": "床より小さい予算",
+   "budget_chars": 10
+  },
+  {
+   "label": "空の窓",
+   "budget_chars": 200,
+   "empty_window": true
+  }
+ ]
+}

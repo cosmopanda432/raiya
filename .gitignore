@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+state/
+.venv/
+venv/
+# state/ 配下に生成される多重書き手対策のロックファイル (.lock) は state/ の
+# blanket ignore で既にカバーされるが、RAIYA_STATE_DIR を別名に向けた場合の
+# 取りこぼしを避けるため明示しておく。
+.lock
+
+# 個人用 Claude Code 設定 (プロジェクト共有の .claude/settings.json は追跡する)
+.claude/settings.local.json
+
+# 設計書 (docs) と七文書 (data/七文書) は /home/dev/MyDocuments 側が正本 (シンボリックリンク)
+docs
+data
+
+# AGENTS.md も /home/dev/MyDocuments/raiya 側が正本 (シンボリックリンク)
+AGENTS.md

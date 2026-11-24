@@ -1,0 +1,256 @@
+{
+  "generated_at": "2026-10-27T13:18:48.641935+00:00",
+  "environment": {
+    "python": "3.12.3",
+    "system": "Linux",
+    "release": "6.8.0-147-generic",
+    "machine": "x86_64",
+    "cpu_count": 2
+  },
+  "params": {
+    "sizes": [
+      100,
+      1000,
+      10000
+    ],
+    "repeats": 7,
+    "hook_repeats": 5,
+    "rng_seed": 20261024,
+    "life": 52,
+    "kind_mix": [
+      [
+        "決定",
+        0.4
+      ],
+      [
+        "所在",
+        0.25
+      ],
+      [
+        "性向",
+        0.2
+      ],
+      [
+        "回避策",
+        0.1
+      ],
+      [
+        "再開点",
+        0.05
+      ]
+    ],
+    "project_mix": [
+      [
+        "P0",
+        0.3
+      ],
+      [
+        "P1",
+        0.3
+      ],
+      [
+        "P2",
+        0.3
+      ],
+      [
+        null,
+        0.1
+      ]
+    ],
+    "variants": [
+      "path",
+      "nopath"
+    ],
+    "with_hook": true
+  },
+  "budget": {
+    "soft_ms": 1000,
+    "hard_ms": 10000,
+    "group_ms": 100,
+    "source": {
+      "soft": "README.md:218/:314 「<1秒目安」、raiya/engine.py 「<1 秒の予算」",
+      "hard": "raiya/hooks/settings.example.json の hook timeout 10 s、docs/設計書.md「同期・timeout 10s」"
+    }
+  },
+  "rows": [
+    {
+      "n": 100,
+      "variant": "path",
+      "construct_recall_ms": {
+        "median": 9.534,
+        "max": 10.616
+      },
+      "recall_ms": {
+        "median": 7.804,
+        "max": 9.116
+      },
+      "stat_calls": 18,
+      "narrative_len": 1390,
+      "group_stats": {
+        "groups": 3,
+        "max_size": 2,
+        "group_ms": 0.202
+      },
+      "hook_ms": {
+        "median": 64.123,
+        "max": 64.148
+      },
+      "db_bytes": 147456,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    },
+    {
+      "n": 100,
+      "variant": "nopath",
+      "construct_recall_ms": {
+        "median": 8.952,
+        "max": 11.012
+      },
+      "recall_ms": {
+        "median": 7.617,
+        "max": 8.878
+      },
+      "stat_calls": 0,
+      "narrative_len": 1280,
+      "group_stats": {
+        "groups": 3,
+        "max_size": 2,
+        "group_ms": 0.188
+      },
+      "hook_ms": {
+        "median": 64.131,
+        "max": 117.967
+      },
+      "db_bytes": 147456,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    },
+    {
+      "n": 1000,
+      "variant": "path",
+      "construct_recall_ms": {
+        "median": 54.113,
+        "max": 70.469
+      },
+      "recall_ms": {
+        "median": 44.953,
+        "max": 69.644
+      },
+      "stat_calls": 182,
+      "narrative_len": 2558,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.042
+      },
+      "hook_ms": {
+        "median": 114.254,
+        "max": 114.421
+      },
+      "db_bytes": 970752,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    },
+    {
+      "n": 1000,
+      "variant": "nopath",
+      "construct_recall_ms": {
+        "median": 50.568,
+        "max": 70.701
+      },
+      "recall_ms": {
+        "median": 41.804,
+        "max": 66.238
+      },
+      "stat_calls": 0,
+      "narrative_len": 2054,
+      "group_stats": {
+        "groups": 248,
+        "max_size": 5,
+        "group_ms": 4.108
+      },
+      "hook_ms": {
+        "median": 114.228,
+        "max": 114.446
+      },
+      "db_bytes": 970752,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    },
+    {
+      "n": 10000,
+      "variant": "path",
+      "construct_recall_ms": {
+        "median": 594.284,
+        "max": 607.906
+      },
+      "recall_ms": {
+        "median": 488.79,
+        "max": 516.798
+      },
+      "stat_calls": 1416,
+      "narrative_len": 3020,
+      "group_stats": {
+        "groups": 1103,
+        "max_size": 44,
+        "group_ms": 48.012
+      },
+      "hook_ms": {
+        "median": 615.488,
+        "max": 665.57
+      },
+      "db_bytes": 9207808,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    },
+    {
+      "n": 10000,
+      "variant": "nopath",
+      "construct_recall_ms": {
+        "median": 581.677,
+        "max": 602.261
+      },
+      "recall_ms": {
+        "median": 493.309,
+        "max": 511.648
+      },
+      "stat_calls": 0,
+      "narrative_len": 2560,
+      "group_stats": {
+        "groups": 1103,
+        "max_size": 44,
+        "group_ms": 45.83
+      },
+      "hook_ms": {
+        "median": 615.462,
+        "max": 615.566
+      },
+      "db_bytes": 9207808,
+      "exceeds_soft": false,
+      "exceeds_hard": false,
+      "exceeds_group_ms": false
+    }
+  ],
+  "first_n_exceeding_soft": null,
+  "first_n_exceeding_hard": null,
+  "group_first_n_exceeding_100ms": null,
+  "first_n_exceeding_by_variant": {
+    "soft": {
+      "path": null,
+      "nopath": null
+    },
+    "hard": {
+      "path": null,
+      "nopath": null
+    },
+    "group_ms": {
+      "path": null,
+      "nopath": null
+    }
+  }
+}

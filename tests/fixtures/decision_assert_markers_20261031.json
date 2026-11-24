@@ -1,0 +1,40 @@
+{
+  "hit": [
+    "DB は SQLite にした。",
+    "DB は PostgreSQL にした。キャッシュは Redis にする？ ジョブは Celery でいいかな？",
+    "認証は JWT に決めた。",
+    "ログ基盤は Loki に決定した",
+    "デプロイは Fly.io で行く。",
+    "ORM は SQLAlchemy を採用した。",
+    "テストは pytest を採用する！",
+    "ビルドは後回しにした。",
+    "DB は SQLite にしました。"
+  ],
+  "miss": [
+    "DB は SQLite にしたほうがいい。",
+    "DB は SQLite にしたら？",
+    "SQLite にしたい。",
+    "SQLite にしよう。",
+    "SQLite にしたいので調べて",
+    "SQLite にしたほうがよいか検討する",
+    "SQLite にしたらどうなるか教えて。",
+    "SQLite で行くのはどう？",
+    "DB は SQLite にしましたか？",
+    "SQLite を採用するかは未定",
+    "Redis を採用するか迷っている。",
+    "We went with SQLite.",
+    "SQLite の性能を気にした。",
+    "SQLite のエラーを目にした。",
+    "その話を耳にした。",
+    "SQLite の名を口にした。",
+    "ログを手にした。",
+    "SQLite の性能を気にしました。",
+    "SQLite のエラーを目にしました。",
+    "その話を耳にしました。",
+    "SQLite の名を口にしました。",
+    "ログを手にしました。"
+  ],
+  "miss_no_condition": [
+    "それにした。"
+  ]
+}

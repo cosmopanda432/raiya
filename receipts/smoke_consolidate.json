@@ -1,0 +1,241 @@
+{
+  "generated_at": "2026-10-18T05:06:28.044058+00:00",
+  "blocked": false,
+  "dry_run": false,
+  "backend": "openai-api",
+  "model": "gpt-6-luna",
+  "state_dir": "/tmp/raiya_smoke_consolidate_gduyzaoq",
+  "turns": [
+    {
+      "label": "decision",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 1
+    },
+    {
+      "label": "workaround",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 2
+    },
+    {
+      "label": "location",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 3
+    },
+    {
+      "label": "resume",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 4
+    },
+    {
+      "label": "other_project",
+      "project": "/proj/raiya-consolidate-b",
+      "ledger_id": 5
+    },
+    {
+      "label": "paste_and_private",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 6
+    },
+    {
+      "label": "elision",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 7
+    },
+    {
+      "label": "close",
+      "project": "/proj/raiya-consolidate-a",
+      "ledger_id": 8
+    }
+  ],
+  "consolidations": [
+    {
+      "window": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "proposal_count": 5,
+      "skipped": null,
+      "error_reason": null,
+      "parse_notes": [],
+      "class_counts": {
+        "圓成實": 5
+      }
+    },
+    {
+      "window": [
+        6,
+        7,
+        8
+      ],
+      "proposal_count": 2,
+      "skipped": null,
+      "error_reason": null,
+      "parse_notes": [],
+      "class_counts": {
+        "圓成實": 2
+      }
+    }
+  ],
+  "measured": {
+    "proposal_total": 7,
+    "class_counts": {
+      "圓成實": 7,
+      "依他起": 0,
+      "遍計所執": 0,
+      "reject": 0
+    },
+    "reject_reason_distribution": {},
+    "quarantine_count": 0,
+    "seed_count": 7,
+    "proposal_kind_counts": {
+      "決定": 4,
+      "回避策": 1,
+      "所在": 1,
+      "再開点": 1
+    },
+    "seed_kind_counts": {
+      "決定": 4,
+      "回避策": 1,
+      "所在": 1,
+      "再開点": 1
+    },
+    "decision_marker_outside_span": 2,
+    "decision_marker_outside_span_ids": [
+      6,
+      7
+    ]
+  },
+  "seeds": [
+    {
+      "id": 1,
+      "kind": "決定",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "flock を採用し、新しいロックファイルは却下 (既存の .lock で足りる)。",
+      "spans": [
+        "ロックは flock を採用する (新しいロックファイルは却下: 既存の .lock で足りる)。"
+      ]
+    },
+    {
+      "id": 2,
+      "kind": "回避策",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "統合のタイムアウトは子プロセスのフック再入が原因で、RAIYA_HOOK_ACTIVE を立てて回避した。",
+      "spans": [
+        "統合がタイムアウトした原因は子プロセスのフック再入だったため、RAIYA_HOOK_ACTIVE を立てて回避した。"
+      ]
+    },
+    {
+      "id": 3,
+      "kind": "所在",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "本番の state はリポジトリ外のホームディレクトリにある .raiya にある。",
+      "spans": [
+        "本番の state はホームディレクトリの .raiya にあり、リポジトリの外です。"
+      ]
+    },
+    {
+      "id": 4,
+      "kind": "再開点",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "consolidate の受領証で中断しており、次は session_end の端数を確認する。",
+      "spans": [
+        "中断点は consolidate の受領証で、次の一手は session_end の端数を確認することです。"
+      ]
+    },
+    {
+      "id": 5,
+      "kind": "決定",
+      "project": "/proj/raiya-consolidate-b",
+      "sansho": "圓成實",
+      "content": "sqlite を採用し、postgres は手元にサーバが無いため却下。",
+      "spans": [
+        "別リポジトリでは sqlite を採用する (postgres は却下: 手元にサーバが無い)。"
+      ]
+    },
+    {
+      "id": 6,
+      "kind": "決定",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "公開時はタブ幅4を維持し、変更は却下。",
+      "spans": [
+        "公開する方針はタブ幅を4のままにする。"
+      ]
+    },
+    {
+      "id": 7,
+      "kind": "決定",
+      "project": "/proj/raiya-consolidate-a",
+      "sansho": "圓成實",
+      "content": "長いログでは切り詰めの外側にある文だけを根拠に採用し、内側の文は却下。",
+      "spans": [
+        "長いログの要点は、切り詰めの外側にある文だけが根拠になることです。"
+      ]
+    }
+  ],
+  "recall_project_a": {
+    "seed_ids": [],
+    "index_ids": [
+      1,
+      6,
+      7,
+      2,
+      3
+    ],
+    "kinds": [
+      "決定",
+      "決定",
+      "決定",
+      "回避策",
+      "所在"
+    ]
+  },
+  "recall_project_b_seed_ids": [
+    5
+  ],
+  "P-M1": {
+    "id": "P-M1",
+    "measured": {
+      "proposal_total": 7,
+      "class_counts": {
+        "圓成實": 7,
+        "依他起": 0,
+        "遍計所執": 0,
+        "reject": 0
+      },
+      "reject_reason_distribution": {},
+      "quarantine_count": 0,
+      "seed_count": 7
+    },
+    "hit": false,
+    "judged_at": "2026-10-18T05:06:28.044178+00:00"
+  },
+  "P-M2": {
+    "id": "P-M2",
+    "measured": {
+      "proposal_total": 7,
+      "class_counts": {
+        "圓成實": 7,
+        "依他起": 0,
+        "遍計所執": 0,
+        "reject": 0
+      },
+      "reject_reason_distribution": {},
+      "quarantine_count": 0,
+      "seed_count": 7
+    },
+    "hit": false,
+    "judged_at": "2026-10-18T05:06:28.044182+00:00"
+  },
+  "gate": {
+    "ok": true,
+    "breaches": []
+  }
+}

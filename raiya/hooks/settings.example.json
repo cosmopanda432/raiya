@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "RAIYA_STATE_DIR=$HOME/.raiya <clone>/.venv/bin/python -m raiya.hooks.claude_code recall",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "RAIYA_STATE_DIR=$HOME/.raiya <clone>/.venv/bin/python -m raiya.hooks.claude_code stop",
+            "timeout": 120,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "RAIYA_STATE_DIR=$HOME/.raiya <clone>/.venv/bin/python -m raiya.hooks.claude_code session_end",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "_note": "手書き。hook が読む欄 (hook_event_name/session_id/transcript_path/cwd/prompt 等) から作った形で、実際の Claude Code セッションから採取したものではない。",
+  "hook_event_name": "UserPromptSubmit",
+  "prompt": "認証の方針を教えて",
+  "session_id": "fixture-session",
+  "transcript_path": "/nonexistent/transcript.jsonl",
+  "cwd": "/nonexistent/project",
+  "permission_mode": "default"
+}

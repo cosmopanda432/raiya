@@ -1,0 +1,36 @@
+{
+  "hit": [
+    "それは違う、元に戻してください",
+    "今の変更は元に戻してください。",
+    "その修正はやり直してください",
+    "勝手に消したのでやめてください",
+    "Please stop. That's wrong, the config is in ~/.raiya",
+    "That's wrong.",
+    "This is not what I asked for",
+    "Please revert that change",
+    "Undo that and use the old path",
+    "ＵＮＤＯ　ＴＨＡＴ please"
+  ],
+  "miss": [
+    "A と B は違います",
+    "値を戻して返す",
+    "今日はやめておく",
+    "勝手にやっていいよ",
+    "そうじゃないと動かない",
+    "そうじゃなくても動く",
+    "そうではなくても動く",
+    "間違っているかもしれない",
+    "間違っていますか",
+    "間違ってる可能性がある",
+    "やり直してみます",
+    "先回りしないで進めて",
+    "この関数は壊れた",
+    "テストが動かない",
+    "B ではなく A",
+    "Instead of YAML, use TOML",
+    "I might revert the change later",
+    "Does it matter whether the answer is wrong?",
+    "We could undo the migration tomorrow",
+    "I can't tell if it's what I asked"
+  ]
+}

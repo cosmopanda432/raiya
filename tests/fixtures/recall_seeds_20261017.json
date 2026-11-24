@@ -1,0 +1,2504 @@
+{
+ "source": "~/.raiya/alaya.json",
+ "captured": "2026-10-17",
+ "life": 52,
+ "note": "改修 5 想起 fixture 用 (spec §8・§11.7)。旧 state 全削除前の本番種子・隔離をそのまま固定。",
+ "seeds": [
+  {
+   "id": 1,
+   "content": "再開ポイントを踏まえ、次の一手を優先度付きで提案してほしい。",
+   "strength": 4,
+   "conditions": [
+    "再開ポイント",
+    "次の一手",
+    "優先度付き"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 4,
+     "source": "user",
+     "span": "再開ポイントを読んで次の一手を優先度付きで提案して",
+     "ledger_id": 6
+    },
+    {
+     "life": 5,
+     "source": "user",
+     "span": "次の一手は？",
+     "ledger_id": 8
+    },
+    {
+     "life": 12,
+     "source": "user",
+     "span": "再開ポイントを読んで次の一手を優先度付きで提案して",
+     "ledger_id": 75
+    },
+    {
+     "life": 18,
+     "source": "user",
+     "span": "再開ポイントを読んで次の一手を優先度付きで",
+     "ledger_id": 152
+    }
+   ],
+   "history": [],
+   "planted_at": 4,
+   "last_fired": 49,
+   "fire_count": 118,
+   "miss_streak": 2
+  },
+  {
+   "id": 2,
+   "content": "開発中は全テストを毎回実行するより、変更範囲に応じた必要なテストに絞って実行し、時間を短縮したい。",
+   "strength": 4,
+   "conditions": [
+    "全テスト",
+    "単体のテスト",
+    "test/"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 5,
+     "source": "user",
+     "span": "全テスト１回で１０分かかるのよ\n早く出来そう？",
+     "ledger_id": 16
+    },
+    {
+     "life": 5,
+     "source": "user",
+     "span": "単体のテストを毎回やる必要はなさげだけど\ntest/の実行は必要？",
+     "ledger_id": 17
+    },
+    {
+     "life": 5,
+     "source": "user",
+     "span": "テスト運用: 場所別スクリプト scripts/test/ と AGENTS.md の改定(途中は 1 本・全件は commit 直前・operator 裁定 2026-10-08)",
+     "ledger_id": 21
+    },
+    {
+     "life": 39,
+     "source": "user",
+     "span": "今は物語帳のnote修正でも全テストじゃね？",
+     "ledger_id": 471
+    }
+   ],
+   "history": [],
+   "planted_at": 5,
+   "last_fired": 43,
+   "fire_count": 32,
+   "miss_streak": 8
+  },
+  {
+   "id": 4,
+   "content": "サブエージェント報告は台帳や想起の文脈窓から除外したい。",
+   "strength": 1,
+   "conditions": [
+    "サブエージェント報告",
+    "除外"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 5,
+     "source": "user",
+     "span": "サブエージェント報告（<\\agent-message>）の除外を足す",
+     "ledger_id": 29
+    }
+   ],
+   "history": [],
+   "planted_at": 5,
+   "last_fired": 5,
+   "fire_count": 5,
+   "miss_streak": 46
+  },
+  {
+   "id": 5,
+   "content": "サブエージェント報告は台帳や想起の文脈窓から除外したい。",
+   "strength": 1,
+   "conditions": [
+    "サブエージェント報告",
+    "台帳",
+    "想起"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 5,
+     "source": "assistant",
+     "span": "新しくできた種子 #4「サブエージェント報告は台帳や想起の文脈窓から除外したい」も、#3 と同じ形です。",
+     "ledger_id": 33
+    }
+   ],
+   "history": [],
+   "planted_at": 5,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 46
+  },
+  {
+   "id": 6,
+   "content": "再開ポイントを踏まえ、次の一手を優先度付きで提案してほしい。",
+   "strength": 1,
+   "conditions": [
+    "再開ポイント",
+    "次の一手候補",
+    "同じ順"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 5,
+     "source": "assistant",
+     "span": "次の一手候補(記憶にも同じ順で記載): (1) #9〜#11 の結果を読み receipt を台帳に記帳 (2) §218 穴②の票 (3) 手動 launcher と毎時 cron の重なりで常駐空白が出る件の別票 (4) src3.sh 6 分短縮= 献上系 serve_code の結果キャッシュの別票。",
+     "ledger_id": 36
+    }
+   ],
+   "history": [],
+   "planted_at": 5,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 46
+  },
+  {
+   "id": 7,
+   "content": "LLMの統合呼び出しでは、道具やユーザー設定を封じ込める安全策を実装したい。",
+   "strength": 2,
+   "conditions": [
+    "封じ込め",
+    "統合"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 5,
+     "source": "user",
+     "span": "封じ込め\nどんなメリットがあるの？",
+     "ledger_id": 40
+    },
+    {
+     "life": 5,
+     "source": "user",
+     "span": "実装\nGO",
+     "ledger_id": 41
+    }
+   ],
+   "history": [],
+   "planted_at": 5,
+   "last_fired": 45,
+   "fire_count": 7,
+   "miss_streak": 6
+  },
+  {
+   "id": 8,
+   "content": "再開ポイントを踏まえ、次の一手を優先度付きで提案してほしい。",
+   "strength": 16,
+   "conditions": [
+    "再開ポイント",
+    "次の一手",
+    "優先度付き"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 6,
+     "source": "user",
+     "span": "再開ポイントを読んで次の一手を優先度付きで提案して",
+     "ledger_id": 42
+    },
+    {
+     "life": 12,
+     "source": "assistant",
+     "span": "裁定待ち(推奨順):",
+     "ledger_id": 92
+    },
+    {
+     "life": 12,
+     "source": "user",
+     "span": "１\nGO",
+     "ledger_id": 93
+    },
+    {
+     "life": 12,
+     "source": "user",
+     "span": "１\nGO",
+     "ledger_id": 98
+    },
+    {
+     "life": 15,
+     "source": "user",
+     "span": "再開ポイントを確認\n次の一手を優先度付きで提案して",
+     "ledger_id": 124
+    },
+    {
+     "life": 17,
+     "source": "user",
+     "span": "再開ポイントを保存して一回終わろう",
+     "ledger_id": 151
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "さっき次の一手で君が提案した件だよ",
+     "ledger_id": 185
+    },
+    {
+     "life": 34,
+     "source": "user",
+     "span": "次は？",
+     "ledger_id": 344
+    },
+    {
+     "life": 34,
+     "source": "user",
+     "span": "1",
+     "ledger_id": 345
+    },
+    {
+     "life": 34,
+     "source": "user",
+     "span": "2波までの実装を再開ポイントに保存して一回終わろう",
+     "ledger_id": 349
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "再開ポイントに書いてない？三貴子のフロー修正",
+     "ledger_id": 424
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "再開ポイントを読んで続きをやろう",
+     "ledger_id": 568
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "QAが終わったけど\n推奨を提案して",
+     "ledger_id": 571
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "ドキュメントと再開ポイントを更新して",
+     "ledger_id": 608
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "再開ポイントを更新して終わろう",
+     "ledger_id": 613
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "再開ポイントを読んで",
+     "ledger_id": 624
+    },
+    {
+     "life": 49,
+     "source": "assistant",
+     "span": "次は波 4(誓約 mint・裁定案 7・§3-9)。",
+     "ledger_id": 624
+    }
+   ],
+   "history": [],
+   "planted_at": 6,
+   "last_fired": 51,
+   "fire_count": 108,
+   "miss_streak": 0
+  },
+  {
+   "id": 9,
+   "content": "実装や説明は古事記の原文に即し、典拠のない共通原理を推定しない。",
+   "strength": 16,
+   "conditions": [
+    "古事記",
+    "原文",
+    "鵠"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 7,
+     "source": "user",
+     "span": "古事記に書かれている通りに実装",
+     "ledger_id": 45
+    },
+    {
+     "life": 7,
+     "source": "user",
+     "span": "鵠は授けられたものではないやん",
+     "ledger_id": 48
+    },
+    {
+     "life": 7,
+     "source": "user",
+     "span": "この神がいないのがおかしくね？",
+     "ledger_id": 51
+    },
+    {
+     "life": 7,
+     "source": "user",
+     "span": "調べて",
+     "ledger_id": 52
+    },
+    {
+     "life": 8,
+     "source": "user",
+     "span": "何回も説明しているけど古事記通りに作る\n僕は古事記通りに作られているか？を確認するだけ",
+     "ledger_id": 54
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "イザナキから三貴子が生まれているし",
+     "ledger_id": 190
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "沼矛を使ったのはイザナギとイザナミだし",
+     "ledger_id": 190
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "独立した神＝柱でしょ",
+     "ledger_id": 190
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "天沼矛の仕様は古事記にあるの？島を生み出したは何を意味するのか？が不明",
+     "ledger_id": 194
+    },
+    {
+     "life": 23,
+     "source": "user",
+     "span": "古事記にプロンプトを受け付ける神はいないの？",
+     "ledger_id": 238
+    },
+    {
+     "life": 28,
+     "source": "user",
+     "span": "思金は柱やん\n原文にある",
+     "ledger_id": 300
+    },
+    {
+     "life": 33,
+     "source": "user",
+     "span": "U+FA19に統一して",
+     "ledger_id": 335
+    },
+    {
+     "life": 33,
+     "source": "assistant",
+     "span": "**(推奨)古事記の神名と原文の引用だけを U+FA19 にする。",
+     "ledger_id": 335
+    },
+    {
+     "life": 33,
+     "source": "user",
+     "span": "１\nGO",
+     "ledger_id": 336
+    },
+    {
+     "life": 35,
+     "source": "user",
+     "span": "全部古事記通りに実装\n矛盾が発生した場合は古事記優先",
+     "ledger_id": 364
+    },
+    {
+     "life": 35,
+     "source": "user",
+     "span": "コメントは重要事項に古事記通りの実装追加",
+     "ledger_id": 366
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "イザナミは色々生んでいるから\nこれが製造にあたる？",
+     "ledger_id": 448
+    },
+    {
+     "life": 43,
+     "source": "user",
+     "span": "これが古事記的に正しい",
+     "ledger_id": 528
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "古事記にそんな設計はあるの？",
+     "ledger_id": 645
+    }
+   ],
+   "history": [],
+   "planted_at": 7,
+   "last_fired": 51,
+   "fire_count": 194,
+   "miss_streak": 0
+  },
+  {
+   "id": 10,
+   "content": "設計はメッセージと古事記の原文に即して行い、典拠のない原理を推定しない。",
+   "strength": 1,
+   "conditions": [
+    "メッセージ",
+    "原文"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 9,
+     "source": "user",
+     "span": "メッセージと原文から設計できないの？",
+     "ledger_id": 59
+    }
+   ],
+   "history": [],
+   "planted_at": 9,
+   "last_fired": 49,
+   "fire_count": 147,
+   "miss_streak": 2
+  },
+  {
+   "id": 11,
+   "content": "解釈や設計上の意味は、原文に即して根拠のある範囲で述べ、根拠がない場合は判断を保留する。",
+   "strength": 1,
+   "conditions": [
+    "原文",
+    "設計上の意味"
+   ],
+   "polarity": "無記",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 10,
+     "source": "assistant",
+     "span": "「二つであること自体に設計上の意味がある」という点は、今回の整理では判断していません。",
+     "ledger_id": 69
+    }
+   ],
+   "history": [],
+   "planted_at": 10,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 41
+  },
+  {
+   "id": 12,
+   "content": "再開ポイントを踏まえ、手順を順番どおりに進めてほしい。",
+   "strength": 6,
+   "conditions": [
+    "順番",
+    "採用",
+    "確認"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 12,
+     "source": "user",
+     "span": "順番に実行して",
+     "ledger_id": 113
+    },
+    {
+     "life": 12,
+     "source": "user",
+     "span": "順番に実行して",
+     "ledger_id": 117
+    },
+    {
+     "life": 13,
+     "source": "user",
+     "span": "tanzo の採否を確認。採用(世代 115・kaizen世代交代)を確認してから言依し#8:",
+     "ledger_id": 121
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "まずは物語帳とメッセージから整理して",
+     "ledger_id": 191
+    },
+    {
+     "life": 33,
+     "source": "user",
+     "span": "１\nGO",
+     "ledger_id": 323
+    },
+    {
+     "life": 33,
+     "source": "user",
+     "span": "2(main への取り込み\nGO",
+     "ledger_id": 324
+    }
+   ],
+   "history": [],
+   "planted_at": 12,
+   "last_fired": 51,
+   "fire_count": 160,
+   "miss_streak": 0
+  },
+  {
+   "id": 13,
+   "content": "作業手順は順番どおりに進める。",
+   "strength": 1,
+   "conditions": [
+    "QA Opus",
+    "shipper",
+    "手順"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 12,
+     "source": "assistant",
+     "span": "戻り次第 QA Opus → shipper → 署名 amend → push → 再点火 3/3 の手順を提示します。",
+     "ledger_id": 120
+    }
+   ],
+   "history": [],
+   "planted_at": 12,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 39
+  },
+  {
+   "id": 14,
+   "content": "作業手順やコマンドは順番どおりに進めてほしい。",
+   "strength": 1,
+   "conditions": [
+    "順番",
+    "コマンド"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 16,
+     "source": "user",
+     "span": "順番にコマンドを実行して",
+     "ledger_id": 128
+    }
+   ],
+   "history": [],
+   "planted_at": 16,
+   "last_fired": 52,
+   "fire_count": 44,
+   "miss_streak": 0
+  },
+  {
+   "id": 15,
+   "content": "コマンドは指定された順番どおりに実行してほしい。",
+   "strength": 3,
+   "conditions": [
+    "順番",
+    "コマンド"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 16,
+     "source": "user",
+     "span": "順番にコマンドを実行して",
+     "ledger_id": 133
+    },
+    {
+     "life": 17,
+     "source": "user",
+     "span": "順番に実行して",
+     "ledger_id": 144
+    },
+    {
+     "life": 34,
+     "source": "user",
+     "span": "コマンドを実行して",
+     "ledger_id": 340
+    }
+   ],
+   "history": [],
+   "planted_at": 16,
+   "last_fired": 52,
+   "fire_count": 51,
+   "miss_streak": 0
+  },
+  {
+   "id": 16,
+   "content": "指定したコマンドは提示された順番どおりに実行してほしい。",
+   "strength": 1,
+   "conditions": [
+    "言依し投入",
+    "数分後",
+    "status"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 19,
+     "source": "user",
+     "span": "# 言依し投入(#13 と同じゴール・同じ資料 05_s1・検算器 kenzan_keisu)\nexport KOJIKI_HOME=/home/dev/kojiki_data\ncd /home/dev/kojiki_python && .venv/bin/python experiments/senroku_operator_cli.py task \"本文の神名の登場回数を『対象: 回数』の行形式で数えて納品する\" --doc data/kojiki/slices/kojiki_05_s1.md --kenzanki senroku_koujou:kenzan_keisu\n\n# 数分後に勘定を見る(言依し#14 の status・ward『前綴 '神集'』・tanzo・kami_event)\n.venv/bin/python experiments/senroku_operator_cli.py status\n\nコマンドを実行して",
+     "ledger_id": 158
+    }
+   ],
+   "history": [],
+   "planted_at": 19,
+   "last_fired": 40,
+   "fire_count": 27,
+   "miss_streak": 11
+  },
+  {
+   "id": 17,
+   "content": "回答は日本語で行ってほしい。",
+   "strength": 1,
+   "conditions": [
+    "日本語"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 19,
+     "source": "user",
+     "span": "日本語で",
+     "ledger_id": 168
+    }
+   ],
+   "history": [],
+   "planted_at": 19,
+   "last_fired": 20,
+   "fire_count": 4,
+   "miss_streak": 31
+  },
+  {
+   "id": 18,
+   "content": "変更を加える際は、不要な処理が含まれていないか棚卸しし、必要性を確認してほしい。",
+   "strength": 7,
+   "conditions": [
+    "#15関係",
+    "不要な処理"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 19,
+     "source": "user",
+     "span": "つか#15関係で色々修正しているけど\n不要な処理は入ってないの？",
+     "ledger_id": 174
+    },
+    {
+     "life": 40,
+     "source": "user",
+     "span": "見やすい見にくいではなくnoteを取り込む必要がないでしょ？\nこれが一番大きい",
+     "ledger_id": 479
+    },
+    {
+     "life": 43,
+     "source": "user",
+     "span": "これだけ修正し他は保留で様子見",
+     "ledger_id": 532
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "これはこのプロジェクトでは実装しないと決まった",
+     "ledger_id": 633
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "これも本プロジェクトでは対象外",
+     "ledger_id": 634
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "トークンを渡しても意味ないんじゃ？\nトークンが存在しないし",
+     "ledger_id": 635
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "修正するメリットがないから天之尾羽張を渡すでいいでしょ",
+     "ledger_id": 636
+    }
+   ],
+   "history": [],
+   "planted_at": 19,
+   "last_fired": 20,
+   "fire_count": 5,
+   "miss_streak": 31
+  },
+  {
+   "id": 19,
+   "content": "専門用語や状況の説明は、分かりやすい言葉で説明してほしい。",
+   "strength": 7,
+   "conditions": [
+    "どういう意味？",
+    "分かりやすく説明して"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "どういう意味？分かりやすく説明して",
+     "ledger_id": 180
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "分かりやすく説明して",
+     "ledger_id": 180
+    },
+    {
+     "life": 23,
+     "source": "user",
+     "span": "分かりやすく説明して",
+     "ledger_id": 243
+    },
+    {
+     "life": 24,
+     "source": "user",
+     "span": "分かりやすく説明して",
+     "ledger_id": 253
+    },
+    {
+     "life": 36,
+     "source": "user",
+     "span": "どういう意味？",
+     "ledger_id": 413
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "どういう意味？",
+     "ledger_id": 638
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "どうやって調べるの？",
+     "ledger_id": 639
+    },
+    {
+     "life": 50,
+     "source": "user",
+     "span": "分かりやすく説明して",
+     "ledger_id": 652
+    }
+   ],
+   "history": [],
+   "planted_at": 20,
+   "last_fired": 50,
+   "fire_count": 25,
+   "miss_streak": 1
+  },
+  {
+   "id": 20,
+   "content": "沼矛は神器ではなく、神器として作成・扱いをしない。",
+   "strength": 2,
+   "conditions": [
+    "沼矛",
+    "神器"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "沼矛は神器で足場ではない",
+     "ledger_id": 197
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "沼矛は神器ではないよ",
+     "ledger_id": 630
+    }
+   ],
+   "history": [
+    {
+     "life": 49,
+     "content": "古事記の原文にない意味づけを避け、沼矛を足場ではなく神器として扱う。",
+     "conditions": [
+      "沼矛",
+      "神器",
+      "足場"
+     ],
+     "sansho": "圓成實",
+     "polarity": "無記",
+     "reason": "superseded"
+    }
+   ],
+   "planted_at": 20,
+   "last_fired": 49,
+   "fire_count": 124,
+   "miss_streak": 2
+  },
+  {
+   "id": 21,
+   "content": "専門用語や状況は分かりやすく説明してほしい。",
+   "strength": 1,
+   "conditions": [
+    "分かりやすく説明して"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "分かりやすく説明して",
+     "ledger_id": 198
+    }
+   ],
+   "history": [],
+   "planted_at": 20,
+   "last_fired": 24,
+   "fire_count": 8,
+   "miss_streak": 27
+  },
+  {
+   "id": 22,
+   "content": "設計や解釈は古事記の原文に照らして根拠のある範囲で述べ、原文と食い違う前提で二柱を起動しない。",
+   "strength": 1,
+   "conditions": [
+    "古事記",
+    "二柱",
+    "起動"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "無条件にイザナミとイザナギを起動は古事記的におかしい",
+     "ledger_id": 206
+    }
+   ],
+   "history": [],
+   "planted_at": 20,
+   "last_fired": 49,
+   "fire_count": 139,
+   "miss_streak": 2
+  },
+  {
+   "id": 23,
+   "content": "メッセージの流れや宛先を断定する前に、要約資料ではなく原本として指定された資料を確認してほしい。",
+   "strength": 4,
+   "conditions": [
+    "メッセージ",
+    "原本",
+    "ドキュメント"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "違う\nメッセージをまとめた資料があるから探して",
+     "ledger_id": 204
+    },
+    {
+     "life": 20,
+     "source": "user",
+     "span": "歌謡逆設計_第一〜三表(歌のメッセージ)が原本と言っている",
+     "ledger_id": 209
+    },
+    {
+     "life": 36,
+     "source": "user",
+     "span": "そもそも会議に呼ばれているの？メッセージを確認して",
+     "ledger_id": 386
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "思金でなければ二柱から送信しているメッセージの相手がやってるのでは？",
+     "ledger_id": 443
+    }
+   ],
+   "history": [
+    {
+     "life": 20,
+     "content": "メッセージの流れについて断定する前に、メッセージをまとめた資料を探して確認してほしい。",
+     "conditions": [
+      "メッセージ",
+      "資料",
+      "探して"
+     ],
+     "sansho": "圓成實",
+     "polarity": "善",
+     "reason": "superseded"
+    }
+   ],
+   "planted_at": 20,
+   "last_fired": 49,
+   "fire_count": 160,
+   "miss_streak": 2
+  },
+  {
+   "id": 24,
+   "content": "OSの説明にBIOSが出てこないことを、BIOS仮説への反証とせず、OSの外にある前提層として扱う。",
+   "strength": 1,
+   "conditions": [
+    "OS",
+    "BIOS"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "だってOSの説明にBIOSは出て来ない",
+     "ledger_id": 216
+    }
+   ],
+   "history": [],
+   "planted_at": 20,
+   "last_fired": 43,
+   "fire_count": 37,
+   "miss_streak": 8
+  },
+  {
+   "id": 25,
+   "content": "二柱の起動経路は「天神の 1 を受けて動き、失敗したら 1 を返し、2 を受けて再び動く」に限定し、それ以外の経路を設けない。",
+   "strength": 1,
+   "conditions": [
+    "二柱",
+    "天神",
+    "起動経路"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 20,
+     "source": "user",
+     "span": "二柱は「天神の 1 を受けて動き、失敗したら 1 を返し、2 を受けて再び動く」以外の起動経路を持たないを含め",
+     "ledger_id": 217
+    }
+   ],
+   "history": [],
+   "planted_at": 20,
+   "last_fired": 49,
+   "fire_count": 38,
+   "miss_streak": 2
+  },
+  {
+   "id": 26,
+   "content": "沼矛は資材ではなく矛として扱い、神器とする。",
+   "strength": 1,
+   "conditions": [
+    "資材",
+    "矛"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 22,
+     "source": "user",
+     "span": "資材ではないわ\nだって矛だし",
+     "ledger_id": 225
+    }
+   ],
+   "history": [],
+   "planted_at": 22,
+   "last_fired": 49,
+   "fire_count": 13,
+   "miss_streak": 2
+  },
+  {
+   "id": 27,
+   "content": "原文や関連コメント・用例を確認し、根拠のある範囲で解釈して根拠がない場合は判断を保留してほしい。",
+   "strength": 2,
+   "conditions": [
+    "原文",
+    "コメント",
+    "確かめて"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 23,
+     "source": "user",
+     "span": "原文から整理できる？コメントも探してみて",
+     "ledger_id": 232
+    },
+    {
+     "life": 23,
+     "source": "user",
+     "span": "節目の用法として同じか確かめて",
+     "ledger_id": 233
+    }
+   ],
+   "history": [],
+   "planted_at": 23,
+   "last_fired": 46,
+   "fire_count": 86,
+   "miss_streak": 5
+  },
+  {
+   "id": 28,
+   "content": "天照の不在はシステムの危機として扱い、緊急集会を平時の召集とは別に扱う。",
+   "strength": 2,
+   "conditions": [
+    "アマテラス",
+    "不在",
+    "緊急集会"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 23,
+     "source": "user",
+     "span": "だってアマテラスが不在はシステムの危機だし",
+     "ledger_id": 248
+    },
+    {
+     "life": 23,
+     "source": "user",
+     "span": "これは緊急集会の扱いで別じゃね？",
+     "ledger_id": 247
+    }
+   ],
+   "history": [],
+   "planted_at": 23,
+   "last_fired": 49,
+   "fire_count": 44,
+   "miss_streak": 2
+  },
+  {
+   "id": 29,
+   "content": "原文や関連コメント・用例を確認し、根拠のある範囲で解釈して根拠がない場合は判断を保留してほしい。",
+   "strength": 10,
+   "conditions": [
+    "エージェント生成",
+    "神器",
+    "古事記"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 24,
+     "source": "user",
+     "span": "エージェント生成は神器とは全く違うけど古事記に設計原理が書いてあるの？",
+     "ledger_id": 259
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "Geminiの推論を精査して",
+     "ledger_id": 432
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "調べて",
+     "ledger_id": 433
+    },
+    {
+     "life": 39,
+     "source": "user",
+     "span": "生まれたは勘違いだった",
+     "ledger_id": 460
+    },
+    {
+     "life": 39,
+     "source": "assistant",
+     "span": "原文は剣と神を同一とは書いていません。",
+     "ledger_id": 460
+    },
+    {
+     "life": 41,
+     "source": "user",
+     "span": "国が管轄領域？\n島が役割分担？\nそれと分かれてない？",
+     "ledger_id": 495
+    },
+    {
+     "life": 41,
+     "source": "user",
+     "span": "Q4～７は不明",
+     "ledger_id": 502
+    },
+    {
+     "life": 41,
+     "source": "user",
+     "span": "これは数が多すぎて今は保留",
+     "ledger_id": 500
+    },
+    {
+     "life": 42,
+     "source": "user",
+     "span": "まだ\n#7～#15もDB初期化や初期の環境整備の一連の流れだと思うけど\n#3〜#6から推測してみて",
+     "ledger_id": 518
+    },
+    {
+     "life": 42,
+     "source": "user",
+     "span": "思金宛てはおかしい",
+     "ledger_id": 524
+    },
+    {
+     "life": 42,
+     "source": "user",
+     "span": "整理して",
+     "ledger_id": 524
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "メッセージ解析で判断できないの？",
+     "ledger_id": 607
+    }
+   ],
+   "history": [],
+   "planted_at": 24,
+   "last_fired": 51,
+   "fire_count": 139,
+   "miss_streak": 0
+  },
+  {
+   "id": 30,
+   "content": "抽象的な裁定だけで終わらせず、エージェントが実際に生成・動作することを重視し、テストしながら詳細設計を進めたい。",
+   "strength": 11,
+   "conditions": [
+    "エージェント",
+    "生成",
+    "動作"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 24,
+     "source": "user",
+     "span": "裁定してもエージェントが生成され動作しなければ意味がない",
+     "ledger_id": 260
+    },
+    {
+     "life": 24,
+     "source": "user",
+     "span": "実装できるイメージができないけど実装できそうなの？テストしつつ詳細な設計を進める？",
+     "ledger_id": 264
+    },
+    {
+     "life": 25,
+     "source": "user",
+     "span": "言依しの goal だけを渡したってLLMはコード作成できないやん",
+     "ledger_id": 273
+    },
+    {
+     "life": 26,
+     "source": "user",
+     "span": "FakeLLMでなく\n実LLM（Luna）でコードが生成できるか？\nこれの検証もやって",
+     "ledger_id": 278
+    },
+    {
+     "life": 35,
+     "source": "user",
+     "span": "神々の会議が無い",
+     "ledger_id": 354
+    },
+    {
+     "life": 36,
+     "source": "user",
+     "span": "つか作業をするエージェントはLLMとやり取りするの？管理している親とやり取りするの？\nソフトウェア工学的な話だわ",
+     "ledger_id": 378
+    },
+    {
+     "life": 36,
+     "source": "user",
+     "span": "試作(src2)で組み、実 Luna で 1 本通し",
+     "ledger_id": 409
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "試作やってから次以降は考えよう\n試作GO",
+     "ledger_id": 581
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "問題なく実装された？",
+     "ledger_id": 582
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "AIとしての基本機能はうごくの？",
+     "ledger_id": 586
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "これはLLMが考えないと自然には発生しないわ",
+     "ledger_id": 601
+    }
+   ],
+   "history": [],
+   "planted_at": 24,
+   "last_fired": 49,
+   "fire_count": 164,
+   "miss_streak": 2
+  },
+  {
+   "id": 31,
+   "content": "新しい設計案を出す前に、コミット済みファイルと検証結果を確認し、完了済みの内容を再提案しない。",
+   "strength": 4,
+   "conditions": [
+    "コミットしたファイル",
+    "テスト済み"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 26,
+     "source": "user",
+     "span": "さっきコミットしたファイルでテスト済み",
+     "ledger_id": 283
+    },
+    {
+     "life": 26,
+     "source": "user",
+     "span": "いや\nだからさっき試したし\nそれで生成されたエージェントが動いたという話",
+     "ledger_id": 286
+    },
+    {
+     "life": 35,
+     "source": "user",
+     "span": "神々の会議の設計書があったはず",
+     "ledger_id": 359
+    },
+    {
+     "life": 35,
+     "source": "user",
+     "span": "エージェントの命名規則も設計書があったはず",
+     "ledger_id": 360
+    }
+   ],
+   "history": [],
+   "planted_at": 26,
+   "last_fired": 26,
+   "fire_count": 5,
+   "miss_streak": 25
+  },
+  {
+   "id": 32,
+   "content": "指定した作業は、提示された順番どおりに進めてほしい。",
+   "strength": 1,
+   "conditions": [
+    "コミット",
+    "プッシュ"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 26,
+     "source": "user",
+     "span": "未コミットファイルをコミット\nその後プッシュして",
+     "ledger_id": 293
+    }
+   ],
+   "history": [],
+   "planted_at": 26,
+   "last_fired": 49,
+   "fire_count": 23,
+   "miss_streak": 2
+  },
+  {
+   "id": 33,
+   "content": "AIへのプロンプトに資料を必須条件として課さない。",
+   "strength": 1,
+   "conditions": [
+    "AIのプロンプト",
+    "資料"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 28,
+     "source": "user",
+     "span": "AIのプロンプトに資料が必須なわけがない",
+     "ledger_id": 298
+    }
+   ],
+   "history": [],
+   "planted_at": 28,
+   "last_fired": 44,
+   "fire_count": 11,
+   "miss_streak": 7
+  },
+  {
+   "id": 34,
+   "content": "資料の内容を精査し、物語帳などの原本と照合したうえで、根拠のある範囲で解釈してほしい。",
+   "strength": 6,
+   "conditions": [
+    "内容を精査",
+    "物語帳",
+    "照合"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 28,
+     "source": "user",
+     "span": "内容を精査して",
+     "ledger_id": 307
+    },
+    {
+     "life": 28,
+     "source": "user",
+     "span": "物語帳との照合",
+     "ledger_id": 308
+    },
+    {
+     "life": 30,
+     "source": "user",
+     "span": "台帳より原文が優先だから台帳にない分は追加する方向で",
+     "ledger_id": 310
+    },
+    {
+     "life": 39,
+     "source": "user",
+     "span": "これに神器が０と書いてあったよね？",
+     "ledger_id": 458
+    },
+    {
+     "life": 42,
+     "source": "user",
+     "span": "Geminiの提案を精査して",
+     "ledger_id": 510
+    },
+    {
+     "life": 42,
+     "source": "user",
+     "span": "この中でどれが一番近い？",
+     "ledger_id": 511
+    }
+   ],
+   "history": [],
+   "planted_at": 28,
+   "last_fired": 51,
+   "fire_count": 63,
+   "miss_streak": 0
+  },
+  {
+   "id": 35,
+   "content": "古事記の原文に照らして解釈し、典拠のない推定を避ける。",
+   "strength": 1,
+   "conditions": [
+    "隠身",
+    "原文",
+    "御魂"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 30,
+     "source": "assistant",
+     "span": "「隠身=休止状態」を御魂一般に当てるのは原文にない推定。",
+     "ledger_id": 311
+    }
+   ],
+   "history": [],
+   "planted_at": 30,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 21
+  },
+  {
+   "id": 36,
+   "content": "本番の再点火は、変更・pushの完了後に別途明示的なGOを受けてから行う。",
+   "strength": 3,
+   "conditions": [
+    "本番",
+    "再点火",
+    "GO"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 33,
+     "source": "assistant",
+     "span": "再点火してよければ GO をください。",
+     "ledger_id": 333
+    },
+    {
+     "life": 33,
+     "source": "user",
+     "span": "GO",
+     "ledger_id": 330
+    },
+    {
+     "life": 37,
+     "source": "user",
+     "span": "本番の再点火\nGO",
+     "ledger_id": 415
+    }
+   ],
+   "history": [],
+   "planted_at": 33,
+   "last_fired": 49,
+   "fire_count": 126,
+   "miss_streak": 2
+  },
+  {
+   "id": 37,
+   "content": "仕事はLLMへのプロンプトであり、資料を必須条件にしない。",
+   "strength": 1,
+   "conditions": [
+    "仕事",
+    "LLMへのプロンプト"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 35,
+     "source": "user",
+     "span": "仕事＝LLMへのプロンプトだよ",
+     "ledger_id": 357
+    }
+   ],
+   "history": [],
+   "planted_at": 35,
+   "last_fired": 49,
+   "fire_count": 24,
+   "miss_streak": 2
+  },
+  {
+   "id": 38,
+   "content": "神をエージェントとして扱うにはDBへの登録を前提とする。",
+   "strength": 1,
+   "conditions": [
+    "DB",
+    "エージェント"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "DBに登録されない神＝エージェントは存在しない",
+     "ledger_id": 369
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": 48,
+   "fire_count": 41,
+   "miss_streak": 3
+  },
+  {
+   "id": 39,
+   "content": "召集対象はメッセージ解析で議に関係するメッセージを受け取っているか確認し、該当しなければ呼ばない。",
+   "strength": 1,
+   "conditions": [
+    "メッセージ解析",
+    "会議関係"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "メッセージ解析で2 柱が受け取っているメッセージに会議関係があるか？無ければ呼ばない",
+     "ledger_id": 371
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 15
+  },
+  {
+   "id": 40,
+   "content": "設計判断は対応するメッセージ上の根拠を確認し、該当するメッセージがなければ導入しない。",
+   "strength": 1,
+   "conditions": [
+    "メッセージ",
+    "なければやらない"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "メッセージに名を問うメッセージがあるか？なければやらない",
+     "ledger_id": 374
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": 48,
+   "fire_count": 12,
+   "miss_streak": 3
+  },
+  {
+   "id": 41,
+   "content": "命名規則で生まれた神々には、個別に宛先を列挙せずブロードキャストで知らせる形を好む。",
+   "strength": 1,
+   "conditions": [
+    "ブロードキャスト",
+    "全部指定"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "この神々へはブロードキャストみたいなメッセージでは？全部指定する意味が少ない",
+     "ledger_id": 388
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 15
+  },
+  {
+   "id": 42,
+   "content": "扱う情報はDBを確認し、実際にメッセージが存在するかどうかを基準に切り分けてほしい。",
+   "strength": 1,
+   "conditions": [
+    "DB",
+    "メッセージが存在するか"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "DBを読めばよさそうだけどメッセージが存在するか？で切り分ける",
+     "ledger_id": 390
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": 42,
+   "fire_count": 9,
+   "miss_streak": 9
+  },
+  {
+   "id": 43,
+   "content": "固有名を持つ神にも役割があり得ると考え、無意味と決めつけず原文や関連資料を確認して解釈してほしい。",
+   "strength": 1,
+   "conditions": [
+    "固有の名称",
+    "役割"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "固有の名称を持った神ということは役割がありそうと思う",
+     "ledger_id": 396
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": 46,
+   "fire_count": 12,
+   "miss_streak": 5
+  },
+  {
+   "id": 44,
+   "content": "設計ではまず正常ルートを一本成立させ、手が回らない固有の神ごとの役割は保留にする。",
+   "strength": 1,
+   "conditions": [
+    "正常ルート",
+    "固有の名",
+    "保留"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 36,
+     "source": "user",
+     "span": "とりあえずこれで正常ルートを一本作る\n固有の名を持った神の役割は保留\nそこまで手が回らない",
+     "ledger_id": 397
+    }
+   ],
+   "history": [],
+   "planted_at": 36,
+   "last_fired": 43,
+   "fire_count": 2,
+   "miss_streak": 8
+  },
+  {
+   "id": 45,
+   "content": "原文の発話を確認し、遣わすメッセージが届いていない柱は遣わす候補から外す。",
+   "strength": 1,
+   "conditions": [
+    "遣わすメッセージ",
+    "候補から外す"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 37,
+     "source": "user",
+     "span": "須佐之男と月読に遣わすメッセージが飛んでいるか？飛んでなければ候補から外す",
+     "ledger_id": 418
+    }
+   ],
+   "history": [],
+   "planted_at": 37,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 14
+  },
+  {
+   "id": 46,
+   "content": "本番の再点火は、変更・pushの完了後に別途明示的なGO判断を経てから行う。",
+   "strength": 1,
+   "conditions": [
+    "本番再点火",
+    "GO 判断"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 37,
+     "source": "user",
+     "span": "EXIT 0 なら、本番再点火の GO 判断へ。",
+     "ledger_id": 419
+    }
+   ],
+   "history": [],
+   "planted_at": 37,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 14
+  },
+  {
+   "id": 47,
+   "content": "OSの説明にBIOSが出てこないことを、BIOS仮説への反証とせず、OSの外にある前提層として扱う。",
+   "strength": 1,
+   "conditions": [
+    "表に出てこない",
+    "矛盾"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 38,
+     "source": "user",
+     "span": "表に出てこないでも使えるから矛盾はない",
+     "ledger_id": 429
+    }
+   ],
+   "history": [],
+   "planted_at": 38,
+   "last_fired": 40,
+   "fire_count": 2,
+   "miss_streak": 11
+  },
+  {
+   "id": 48,
+   "content": "古事記の原文にない期限や仕組みを足さず、原文に根拠のある範囲で解釈してほしい。",
+   "strength": 1,
+   "conditions": [
+    "古事記",
+    "沼矛",
+    "期限"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 38,
+     "source": "assistant",
+     "span": "ただ、古事記の本文には沼矛の期限が書かれていません。時間や回数の制限を付けると、本文に無いことを足すことになります。",
+     "ledger_id": 437
+    }
+   ],
+   "history": [],
+   "planted_at": 38,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 13
+  },
+  {
+   "id": 49,
+   "content": "実装に進む前に設計を文書化し、未決の論点を十分に詰めてほしい。",
+   "strength": 2,
+   "conditions": [
+    "実装前",
+    "裁定点",
+    "ドキュメント"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 38,
+     "source": "user",
+     "span": "実装前に止めます。裁定点は次の 7 つ。",
+     "ledger_id": 447
+    },
+    {
+     "life": 38,
+     "source": "user",
+     "span": "イザナミ・イザナギでドキュメント作って\nまだまだ詰めないといけないと思う",
+     "ledger_id": 449
+    }
+   ],
+   "history": [],
+   "planted_at": 38,
+   "last_fired": 46,
+   "fire_count": 11,
+   "miss_streak": 5
+  },
+  {
+   "id": 50,
+   "content": "全テストの実行に時間がかかる場合は、全テスト自体の実行時間も改善したい。",
+   "strength": 1,
+   "conditions": [
+    "全テスト",
+    "１０分",
+    "改善"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 39,
+     "source": "user",
+     "span": "全テストが１０分かかるから全テストも改善したいのよ",
+     "ledger_id": 468
+    }
+   ],
+   "history": [],
+   "planted_at": 39,
+   "last_fired": 40,
+   "fire_count": 4,
+   "miss_streak": 11
+  },
+  {
+   "id": 51,
+   "content": "データ整理や移行では情報の漏れを避け、元データとの完全一致を検証できる方法を優先してほしい。",
+   "strength": 1,
+   "conditions": [
+    "100%漏れ"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 40,
+     "source": "user",
+     "span": "その方法は\n100%漏れが出るわ",
+     "ledger_id": 475
+    }
+   ],
+   "history": [],
+   "planted_at": 40,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 11
+  },
+  {
+   "id": 52,
+   "content": "古事記の原文に明言がなく時代も異なる同名存在は、同一視を避け、典拠のある範囲で解釈する。",
+   "strength": 1,
+   "conditions": [
+    "明言",
+    "時代",
+    "同じ"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 40,
+     "source": "user",
+     "span": "明言してないけど時代が違うし\n同じとするのが不自然",
+     "ledger_id": 485
+    }
+   ],
+   "history": [],
+   "planted_at": 40,
+   "last_fired": 40,
+   "fire_count": 1,
+   "miss_streak": 11
+  },
+  {
+   "id": 53,
+   "content": "メッセージの調査ではデバッグ用DBを根拠にせず、メッセージを解析したドキュメントを確認してほしい。",
+   "strength": 1,
+   "conditions": [
+    "メッセージ",
+    "ドキュメント"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 40,
+     "source": "user",
+     "span": "メッセージを解析したドキュメントから調べて",
+     "ledger_id": 489
+    }
+   ],
+   "history": [],
+   "planted_at": 40,
+   "last_fired": 48,
+   "fire_count": 3,
+   "miss_streak": 3
+  },
+  {
+   "id": 54,
+   "content": "二柱の設計では「國」をOS上の抽象概念に置き換えず、島の話として扱ってほしい。",
+   "strength": 1,
+   "conditions": [
+    "国",
+    "OS",
+    "島"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 40,
+     "source": "user",
+     "span": "それは国というか島の話",
+     "ledger_id": 491
+    }
+   ],
+   "history": [],
+   "planted_at": 40,
+   "last_fired": 46,
+   "fire_count": 9,
+   "miss_streak": 5
+  },
+  {
+   "id": 55,
+   "content": "設計では、作ったものの呼び名が島か國かに拘るより、それが何を意味し、動作にどう関わるかを重視する。",
+   "strength": 1,
+   "conditions": [
+    "島",
+    "國",
+    "それが何"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 40,
+     "source": "user",
+     "span": "まあ、作ったのは島でも國でもいいけど\nそれが何？って話",
+     "ledger_id": 492
+    }
+   ],
+   "history": [],
+   "planted_at": 40,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 11
+  },
+  {
+   "id": 56,
+   "content": "天之尾羽張は初期設定で準備しておく。",
+   "strength": 1,
+   "conditions": [
+    "天之尾羽張",
+    "初期設定"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 41,
+     "source": "user",
+     "span": "天之尾羽張は初期設定で準備しとく必要がある",
+     "ledger_id": 504
+    }
+   ],
+   "history": [],
+   "planted_at": 41,
+   "last_fired": 49,
+   "fire_count": 5,
+   "miss_streak": 2
+  },
+  {
+   "id": 57,
+   "content": "実装に進む前に設計の未決・不明な論点を明確にしてほしい。",
+   "strength": 1,
+   "conditions": [
+    "設計票",
+    "不明"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 42,
+     "source": "user",
+     "span": "まだ不明な項目を表示して",
+     "ledger_id": 506
+    }
+   ],
+   "history": [],
+   "planted_at": 42,
+   "last_fired": 46,
+   "fire_count": 8,
+   "miss_streak": 5
+  },
+  {
+   "id": 58,
+   "content": "現在実装中の OS では、DB や環境を整える処理は実装しない。",
+   "strength": 1,
+   "conditions": [
+    "DBや環境を整える",
+    "実装中のOS",
+    "処理として必要ない"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 42,
+     "source": "user",
+     "span": "DBや環境を整えるは今の実装中のOSでは予定していないから処理として必要ない",
+     "ledger_id": 514
+    }
+   ],
+   "history": [],
+   "planted_at": 42,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 9
+  },
+  {
+   "id": 59,
+   "content": "記憶が増え続けないよう、本人が覚えている内容はメモリに保存せず削除してほしい。",
+   "strength": 1,
+   "conditions": [
+    "メモリ",
+    "増える一方",
+    "僕が覚えている"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 43,
+     "source": "user",
+     "span": "そのメモリ消して\n増える一方だから\n僕が覚えているから問題なし",
+     "ledger_id": 529
+    }
+   ],
+   "history": [],
+   "planted_at": 43,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 8
+  },
+  {
+   "id": 60,
+   "content": "推測的な解釈も、裁定と区別し根拠の強さを示した「読みの仮説」として記録してほしい。",
+   "strength": 6,
+   "conditions": [
+    "熱暴走",
+    "読みの仮説"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 43,
+     "source": "user",
+     "span": "これもサーバーの熱暴走やオーバーヒートに関連する動きや現象と思うよ\n推論できる？",
+     "ledger_id": 536
+    },
+    {
+     "life": 43,
+     "source": "user",
+     "span": "書き足して",
+     "ledger_id": 537
+    },
+    {
+     "life": 43,
+     "source": "assistant",
+     "span": "冒頭に「裁定ではなく読みの仮説」と書き、根拠の強さを★(強)と△(弱)で付けています。",
+     "ledger_id": 537
+    },
+    {
+     "life": 44,
+     "source": "user",
+     "span": "まああとはソフトウェア工学的なマルチエージェントの読みだわ",
+     "ledger_id": 552
+    },
+    {
+     "life": 44,
+     "source": "user",
+     "span": "ok",
+     "ledger_id": 553
+    },
+    {
+     "life": 45,
+     "source": "user",
+     "span": "岩戸の障害を境に設計が変更になっている仮説を\nこれに追記して",
+     "ledger_id": 566
+    },
+    {
+     "life": 46,
+     "source": "user",
+     "span": "§6 に 1 項(6-2 の ③)として足す",
+     "ledger_id": 569
+    }
+   ],
+   "history": [],
+   "planted_at": 43,
+   "last_fired": 46,
+   "fire_count": 12,
+   "miss_streak": 5
+  },
+  {
+   "id": 61,
+   "content": "神々の役割を推測する際は、まずメッセージを分類してから推測してほしい。",
+   "strength": 1,
+   "conditions": [
+    "メッセージ",
+    "分類",
+    "役割"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 44,
+     "source": "user",
+     "span": "まずメッセージを分類し\n伊邪那岐・伊邪那美以外の神の役割を推測しよう",
+     "ledger_id": 542
+    }
+   ],
+   "history": [],
+   "planted_at": 44,
+   "last_fired": 48,
+   "fire_count": 5,
+   "miss_streak": 3
+  },
+  {
+   "id": 62,
+   "content": "エージェント役割分担の資料は簡潔に保ち、詳しい説明は神の役割の資料に記載してほしい。",
+   "strength": 1,
+   "conditions": [
+    "エージェント役割分担",
+    "神の役割",
+    "ボリューム"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 44,
+     "source": "user",
+     "span": "エージェント役割分担にはボリュームを持たせないで",
+     "ledger_id": 549
+    }
+   ],
+   "history": [],
+   "planted_at": 44,
+   "last_fired": 44,
+   "fire_count": 2,
+   "miss_streak": 7
+  },
+  {
+   "id": 63,
+   "content": "ソフトウェア／システム工学の話では、原文解釈に逸れず、問いにある仕組みがどの設計ケースに当たるかを直接示してほしい。",
+   "strength": 1,
+   "conditions": [
+    "ソフトウェア/システム工学的",
+    "どのケース"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 45,
+     "source": "user",
+     "span": "だからソフトウェア/システム工学的に\nアマテラスと 高御産巣日の連名はどのケースになるのか？が知りたい",
+     "ledger_id": 563
+    }
+   ],
+   "history": [],
+   "planted_at": 45,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 6
+  },
+  {
+   "id": 64,
+   "content": "イザナギとイザナミの処理は三貴子の起動に限定し、それ以外の処理を設けない。",
+   "strength": 1,
+   "conditions": [
+    "イザナギとイザナミ",
+    "三貴子起動",
+    "岩戸隠れ前のシステム設計"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "user",
+     "span": "条件はイザナギとイザナミの処理は三貴子起動のみ",
+     "ledger_id": 576
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 5
+  },
+  {
+   "id": 65,
+   "content": "実装前に設計票へ仕様・裁定点・未決論点を整理し、未確定の前提を明示してほしい。",
+   "strength": 1,
+   "conditions": [
+    "設計票",
+    "裁定案",
+    "前提が未定"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "assistant",
+     "span": "§6 分からない 6 点。うち **波 0-3 の前提が未定**",
+     "ledger_id": 577
+    },
+    {
+     "life": 46,
+     "source": "assistant",
+     "span": "次(GO 待ち)",
+     "ledger_id": 577
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 5
+  },
+  {
+   "id": 66,
+   "content": "次の作業は優先順位を明示して提案してほしい。",
+   "strength": 1,
+   "conditions": [
+    "推奨順",
+    "裁定",
+    "波 0-1"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "assistant",
+     "span": "推奨順= ① 『見畏』の裁定(§6)② 波 0-1 を src2 で試作(神夜良比= 別ドメインへ移す動詞・物語帳の gap と同時)③ 波 0-2。",
+     "ledger_id": 577
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 5
+  },
+  {
+   "id": 67,
+   "content": "新しい案を出す前に既存実装を確認し、現状との差分を明示してほしい。",
+   "strength": 1,
+   "conditions": [
+    "原文",
+    "既存実装",
+    "確認済"
+   ],
+   "polarity": "善",
+   "sansho": "依他起",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "assistant",
+     "span": "各 原文→工学(読み)→既存実装(確認済)→gap。",
+     "ledger_id": 577
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": null,
+   "fire_count": 0,
+   "miss_streak": 5
+  },
+  {
+   "id": 68,
+   "content": "LLMの呼び出しを過剰な短周期で繰り返さず、サイバー攻撃と誤認されるような頻度を避けてほしい。",
+   "strength": 1,
+   "conditions": [
+    "３秒ごと",
+    "LLM",
+    "サイバー攻撃"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "user",
+     "span": "３秒ごとにLLMはありえないわ\n最悪、サイバー攻撃と間違われる",
+     "ledger_id": 585
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": 49,
+   "fire_count": 3,
+   "miss_streak": 2
+  },
+  {
+   "id": 69,
+   "content": "岩戸隠れの変化は、自己進化と断定するより通常のバージョンアップとして整理する方向を好む。",
+   "strength": 1,
+   "conditions": [
+    "岩戸隠れ",
+    "自己進化",
+    "バージョンアップ"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "user",
+     "span": "やっぱり、岩戸隠れで自己進化は難しくね？\n普通にバージョンアップでは？",
+     "ledger_id": 592
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": 46,
+   "fire_count": 1,
+   "miss_streak": 5
+  },
+  {
+   "id": 70,
+   "content": "システム設計は岩戸後を基準に整理し、v0の実装・互換性は前提にしない。",
+   "strength": 1,
+   "conditions": [
+    "岩戸後",
+    "v0",
+    "システム設計"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 46,
+     "source": "user",
+     "span": "岩戸後のシステム設計からだね\nv0は必要ない",
+     "ledger_id": 595
+    }
+   ],
+   "history": [],
+   "planted_at": 46,
+   "last_fired": 46,
+   "fire_count": 1,
+   "miss_streak": 5
+  },
+  {
+   "id": 71,
+   "content": "メッセージを受け取って動く神は使者という役名だけでなくエージェントとして扱い、役の定義は資料に即して確かめる。",
+   "strength": 2,
+   "conditions": [
+    "メッセージ",
+    "エージェント",
+    "使者"
+   ],
+   "polarity": "無記",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 48,
+     "source": "user",
+     "span": "メッセージを受け取ってるならエージェントだわ",
+     "ledger_id": 617
+    },
+    {
+     "life": 48,
+     "source": "user",
+     "span": "使者の役の定義は？",
+     "ledger_id": 618
+    }
+   ],
+   "history": [],
+   "planted_at": 48,
+   "last_fired": 49,
+   "fire_count": 6,
+   "miss_streak": 2
+  },
+  {
+   "id": 72,
+   "content": "メッセージを受け取って処理する主体は、使者であってもエージェントとして扱い、運ぶことも処理として捉えてほしい。",
+   "strength": 2,
+   "conditions": [
+    "メッセージ",
+    "エージェント",
+    "運ぶだけ"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 48,
+     "source": "user",
+     "span": "メッセージを受け取ってるからエージェント",
+     "ledger_id": 621
+    },
+    {
+     "life": 48,
+     "source": "user",
+     "span": "運ぶだけの処理は否定されないやん",
+     "ledger_id": 620
+    }
+   ],
+   "history": [],
+   "planted_at": 48,
+   "last_fired": 49,
+   "fire_count": 2,
+   "miss_streak": 2
+  },
+  {
+   "id": 73,
+   "content": "設計や実装機能を含む全体を古事記の原文に照らして見直し、古事記にない機能は加えないでほしい。",
+   "strength": 2,
+   "conditions": [
+    "古事記",
+    "機能",
+    "全て見直し"
+   ],
+   "polarity": "善",
+   "sansho": "圓成實",
+   "evidences": [
+    {
+     "life": 49,
+     "source": "user",
+     "span": "古事記にない機能はいらない",
+     "ledger_id": 647
+    },
+    {
+     "life": 49,
+     "source": "user",
+     "span": "こんなの別票とかでなく根本的に全て見直し",
+     "ledger_id": 649
+    }
+   ],
+   "history": [],
+   "planted_at": 49,
+   "last_fired": 49,
+   "fire_count": 1,
+   "miss_streak": 2
+  }
+ ],
+ "quarantine": [
+  {
+   "id": 1,
+   "content": "動作コマンドの投入はoperator本人のみが行い、アシスタントは実行せずコマンドの提示にとどめる。",
+   "conditions": [
+    "動作コマンド投入",
+    "operatorのみ"
+   ],
+   "polarity": "善",
+   "sansho": "遍計所執",
+   "life": 5,
+   "reason": "operator 手動隔離 (2026-10-08): 種子 #3 は台帳 id 22 の質問「こんなメモリあるの？」を統合 LLM が性向と解釈したもの。ゲートは逐語のみ判定するため通過していた",
+   "withdrawn_seed": {
+    "id": 3,
+    "content": "動作コマンドの投入はoperator本人のみが行い、アシスタントは実行せずコマンドの提示にとどめる。",
+    "strength": 1,
+    "conditions": [
+     "動作コマンド投入",
+     "operatorのみ"
+    ],
+    "polarity": "善",
+    "sansho": "圓成實",
+    "evidences": [
+     {
+      "life": 5,
+      "source": "user",
+      "span": "動作コマンド投入はoperatorのみ",
+      "ledger_id": 22
+     }
+    ],
+    "history": [],
+    "planted_at": 5,
+    "last_fired": 5,
+    "fire_count": 4,
+    "miss_streak": 0
+   }
+  },
+  {
+   "id": 2,
+   "content": "検証結果の因果解釈では、分離できない要因を明示し、根拠を超えて断定しない。",
+   "conditions": [
+    "読みの限界",
+    "n=2",
+    "分離しません"
+   ],
+   "polarity": "無記",
+   "sansho": "遍計所執",
+   "life": 20,
+   "reason": "span が往復本文(user/assistant)のいずれにも逐語一致しません(遍計所執=非接地)"
+  }
+ ]
+}

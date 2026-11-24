@@ -1,0 +1,36 @@
+{
+  "P-M1": {
+    "id": "P-M1",
+    "measured": {
+      "proposal_total": 27,
+      "class_counts": {
+        "圓成實": 18,
+        "依他起": 9,
+        "遍計所執": 0,
+        "reject": 0
+      },
+      "reject_reason_distribution": {},
+      "quarantine_count": 0,
+      "seed_count": 21
+    },
+    "hit": false,
+    "judged_at": "2026-10-24T02:57:58.799284+00:00"
+  },
+  "P-M2": {
+    "id": "P-M2",
+    "measured": {
+      "proposal_total": 27,
+      "class_counts": {
+        "圓成實": 18,
+        "依他起": 9,
+        "遍計所執": 0,
+        "reject": 0
+      },
+      "reject_reason_distribution": {},
+      "quarantine_count": 0,
+      "seed_count": 21
+    },
+    "hit": false,
+    "judged_at": "2026-10-24T02:57:58.799296+00:00"
+  }
+}

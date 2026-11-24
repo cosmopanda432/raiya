@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raiya"
+version = "0.1.0"
+description = "頼耶 -- 捏造を構造的に通さない記憶エンジン (唯識の三能変を処理パイプラインにした記憶ライブラリ)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+# コアの依存は PyYAML だけ (設定ファイル config.yaml の読み込み、yaml.safe_load のみ)。
+# 記憶機能設計書§4.1 の標準ライブラリ縛りは 2026-10-23 に廃止
+# (2026-10-23-config-file-design.md)。これ以上足すときは先に相談する。
+dependencies = ["PyYAML>=6.0.1,<7"]
+
+[project.optional-dependencies]
+# MCP サーバ (raiya/mcp_server.py, `raiya-mcp-server`) だけは公式 MCP Python SDK を必要とする:
+#   pip install -e ".[mcp]"   (mcp 2.x は Python 3.10+)
+mcp = ["mcp>=2,<3"]
+# テスト自体は標準ライブラリの unittest のみを使う (MCP サーバのテストは上記 extra が
+# 無ければ skip する)。この節は「開発時に何かインストールしたくなったら」のための空の受け皿。
+dev = []
+
+[project.scripts]
+raiya-cli = "raiya.cli:main"
+raiya-mcp-server = "raiya.mcp_server:main"
+raiya-inspect = "raiya.inspect_cli:main"
+raiya-correct = "raiya.correct_cli:main"
+raiya-hook = "raiya.hooks.raiya_hook:main"
+
+[tool.setuptools.packages.find]
+include = ["raiya*"]
