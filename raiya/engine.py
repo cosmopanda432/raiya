@@ -252,7 +252,7 @@ class MemoryEngine:
         `alaya_warning` / `manas_warning` = この呼び出しの reload 直後の `alaya.warning` / `manas.warning`
         (読めない行がある呼び出しにだけ str、他は None。読めない行は毎回読み飛ばして警告するだけで、退避も書き直しもしない)。`seeds` = 発芽した全件 (①)、`index` = 注入文の
         ③ に描画された種子 (深いコピー・描画の順。発芽した種子は入らず、群は代表 1 件)。`circles` =
-        {"siblings", "groups", "global", "cut", "chars", "max_chars"} (② ③ の群 ④ と容量で落ちた数。layered-memory plan §6)。
+        {"siblings", "groups", "global", "cut", "shortened", "chars", "max_chars"} (② ③ の群 ④ と容量で落ちた数。layered-memory plan §6)。
         判定は `alaya._circle_verdicts` の 1 回、注入文は `manas.compose_injection` の 1 か所 (`explain_recall` と共通)。
         """
         include_dispositions = _inject_dispositions()
@@ -1106,6 +1106,7 @@ def _circles(composed):
         "groups": composed["groups"],
         "global": composed["global"],
         "cut": dict(composed["cut"]),
+        "shortened": {form: list(ids) for form, ids in composed["shortened"].items()},
         "chars": len(text),
         "max_chars": _manas_module.INJECTION_MAX_CHARS,
     }

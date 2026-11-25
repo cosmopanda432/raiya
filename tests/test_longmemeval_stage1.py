@@ -187,6 +187,18 @@ class TestRenderedFirstCircle(unittest.TestCase):
             [{"id": 5, "sansho": "依他起", "strength": 9}, {"id": 6, "sansho": "圓成實", "strength": 1}], 0, limit=5), [6, 5])
 
 
+class TestShortenedEvidence(_Base):
+    def test_filters_to_evidence_ids(self):
+        self.assertEqual(lm.shortened_evidence({"shortened": {"no_summary": [3], "name_only": [1, 7]}}, [1, 3, 9]),
+                         {"no_summary": [3], "name_only": [1]})
+        self.assertEqual(lm.shortened_evidence({"cut": {}}, [1]), {"no_summary": [], "name_only": []})
+
+    def test_summary_counts_exist_and_are_zero_on_the_fixture(self):
+        doc = self.run_fixture()
+        self.assertEqual(doc["summary"]["by_arm"]["A-a"]["first_circle_name_only_evidence_questions"], 0)
+        self.assertEqual(doc["summary"]["by_arm"]["A-a"]["first_circle_no_summary_evidence_questions"], 0)
+
+
 class TestFailClosed(_Base):
     def _assert_refused(self, data_path):
         out = os.path.join(self.tmp, "never")

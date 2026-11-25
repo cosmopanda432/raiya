@@ -621,7 +621,7 @@ class TestInjectionLog(_StateCase):
         eng.recall("猫")  # MCP/CLI 相当: session なし・project なし
         log = eng.injection_log(2)
         self.assertEqual(list(log[0]), ["life", "ego_weight", "injected_text", "seed_ids", "index_ids",
-                                        "ts", "session_id", "project", "cut"])  # cut = layered-memory 計画 §2.5
+                                        "ts", "session_id", "project", "cut", "shortened"])  # cut = layered-memory 計画 §2.5・shortened = T3 6b
         self.assertEqual((log[0]["session_id"], log[0]["project"]), ("s9", P))
         self.assertRegex(log[0]["ts"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00$")
         self.assertEqual((log[1]["session_id"], log[1]["project"]), (None, None))

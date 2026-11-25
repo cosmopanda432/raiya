@@ -207,28 +207,30 @@ class TestPreviousSaying(unittest.TestCase):
         s2 = _seed([_ev("user", "本物", 1, 1), dict(_ev("user", "float", 1.0, 2)), _ev("user", S2, 2, 3)], [_sup(2)])
         self.assertEqual(_previous_saying(s2), "・前の言 (往復 1): 本物")
 
-    def test_long_previous_saying_cut_rule(self):
-        # 既知の取引 (spec §7.1): 切り詰めは入れず、長い 前の言 を持つ行は strict outward cut で落ち、以後の ①③④ も落ちる
+    def test_long_previous_saying_becomes_name_only(self):
+        # 6b (T3): 長い 前の言 を持つ行は、入らなければ名だけの形 (前の言 と要約は付けない) で描かれ、以後の ①③④ も残る
         long_prev = "あ" * 3100
         long_seed = _seed([_ev("user", long_prev, 1, 1), _ev("user", S2, 2, 2)], [_sup(2)])
         out = ManasStore().compose_injection([long_seed])
         self.assertLessEqual(len(out["text"]), INJECTION_MAX_CHARS)
-        self.assertEqual(out["cut"]["germinated"], 1)
-        self.assertEqual(out["shown_seed_ids"], [])
+        self.assertEqual(out["cut"]["germinated"], 0)
+        self.assertEqual(out["shown_seed_ids"], [long_seed["id"]])
+        self.assertIn("容量で省略", out["text"])
         self.assertNotIn("前の言 (", out["text"])
         # 対照: history が無ければ同じ種子の行は描かれる
         plain = dict(long_seed, history=[])
         out_plain = ManasStore().compose_injection([plain])
         self.assertEqual(out_plain["shown_seed_ids"], [1])
         self.assertIn(S2, out_plain["text"])
-        # 順: 短い種子が先なら残り、長い種子が先なら後ろの短い種子も落ちる (外向きの切り)
+        # 順: 長い種子は名だけで描かれるので、短い種子が前でも後ろでも両方残る (6b。前は後ろの短い種子も落ちた)
         short = dict(_seed([_ev("user", "短い決定の逐語", 1, 5)], []), id=2)
         first = ManasStore().compose_injection([short, long_seed])
-        self.assertEqual(first["shown_seed_ids"], [2])
+        self.assertEqual(first["shown_seed_ids"], [2, 1])
         self.assertIn("短い決定の逐語", first["text"])
         last = ManasStore().compose_injection([long_seed, short])
-        self.assertEqual(last["shown_seed_ids"], [])
-        self.assertNotIn("短い決定の逐語", last["text"])
+        self.assertEqual(last["shown_seed_ids"], [1, 2])
+        self.assertIn("短い決定の逐語", last["text"])
+        self.assertEqual(last["shortened"], {"no_summary": [], "name_only": [1]})
 
 
 class TestPreviousSayingThroughEngine(unittest.TestCase):

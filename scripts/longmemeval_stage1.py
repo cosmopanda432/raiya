@@ -242,6 +242,14 @@ def rendered_first_circle(seeds, cut_germinated, limit=None):
     return [s["id"] for s in ordered[:keep]]
 
 
+def shortened_evidence(circles, ev_ids):
+    """① で縮めて描かれた種子のうち根拠の種子 (`ev_ids`) の id: `{"no_summary": [...], "name_only": [...]}` (純粋・T3 6b)。
+    `circles` に `shortened` が無ければ両方 `[]`。"""
+    shortened = circles.get("shortened") or {}
+    keep = set(ev_ids)
+    return {form: [i for i in shortened.get(form, []) if i in keep] for form in ("no_summary", "name_only")}
+
+
 def default_first_circle_limit():
     """新しい状態の ego_weight (= INITIAL_EGO_WEIGHT) での ① の描画件数。状態の中身は読まない (定数から)。"""
     from raiya import manas
@@ -436,8 +444,9 @@ def _measure(engine, q, records, inject_env):
         "germination_reasons": g_reason,
         "index_reasons": i_reason,
         "first_loss": first_loss,
-        "circles": {"cut": dict(out["circles"]["cut"]), "chars": out["circles"]["chars"],
-                    "max_chars": out["circles"]["max_chars"]},
+        "circles": {"cut": dict(out["circles"]["cut"]), "shortened": dict(out["circles"].get("shortened") or {}),
+                    "chars": out["circles"]["chars"], "max_chars": out["circles"]["max_chars"]},
+        "shortened_evidence": shortened_evidence(out["circles"], ev_ids),
         "fired_total": len(out["seeds"]),
         "index_rendered_total": len(out["index"]),
         "narrative_has_evidence_text": has_text,
@@ -572,6 +581,10 @@ def _summ_arm(rows, arm):
         "abs_questions_with_injection": sum(1 for r in rows if arm in r["arms"] and r["is_abs"]
                                             and r["arms"][arm].get("injected")),
         "cut_questions": cut,
+        "first_circle_no_summary_evidence_questions": sum(
+            1 for a in ok if a["shortened_evidence"]["no_summary"]),
+        "first_circle_name_only_evidence_questions": sum(
+            1 for a in ok if a["shortened_evidence"]["name_only"]),
         "injected_without_evidence_text_in_narrative": sum(
             1 for a in ok if a["injected"] and not a["narrative_has_evidence_text"]),
         "chars": _dist([a["circles"]["chars"] for a in ok]),

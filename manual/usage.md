@@ -49,7 +49,7 @@ facade (`raiya.engine.MemoryEngine`) の中核の動詞は次の9つ (記憶機�
 
 | 動詞 | 入力 | 出力 | LLM |
 |---|---|---|---|
-| `recall(text, context=None, project=None, session_start=False, session_id=None)` | 文字列 + 文脈窓 (文字列リスト) + project (`None` は全域の種子だけ) + 最初の想起か | `{"seeds": [...], "narrative": str, "index": [...], "resume": ..., "circles": {...}, "alaya_warning": str\|None, "manas_warning": str\|None}` (`resume` = 再開点。`circles` = `siblings`/`groups`/`global` は各円の項目のリスト、`cut`/`chars`/`max_chars` は容量で落とした件数・字数・上限の数値) | 不使用 |
+| `recall(text, context=None, project=None, session_start=False, session_id=None)` | 文字列 + 文脈窓 (文字列リスト) + project (`None` は全域の種子だけ) + 最初の想起か | `{"seeds": [...], "narrative": str, "index": [...], "resume": ..., "circles": {...}, "alaya_warning": str\|None, "manas_warning": str\|None}` (`resume` = 再開点。`circles` = `siblings`/`groups`/`global` は各円の項目のリスト、`cut`/`chars`/`max_chars` は容量で落とした件数・字数・上限の数値、`shortened` は ① で縮めて描いた種子の id = `no_summary` (要約を外した) / `name_only` (名だけ)) | 不使用 |
 | `imprint(turns, proposals, project=None)` | `Turn` または `Turn` の列 + 提案リスト | 決定リスト (`decision` = 圓成實/依他起/遍計所執/reject/取り下げ照合/双子照合) | 不使用 |
 | `record_turn(user_text, assistant_text, session_id=None, grounding_text=None, project=None, tool_refs=None)` | 往復本文 | `{"ledger_id": int, "pending": int}` | 不使用 |
 | `consolidate(notes=None, debug=None)` | なし (台帳の未統合窓を読む) | `{"window": [台帳id], "window_sessions": int, "proposals": [...], "decisions": [...], "skipped": None/"empty"/"already_consolidated"/"partial_overlap"/"unparseable"}` | **使用** (CLI/hooks 専用) |

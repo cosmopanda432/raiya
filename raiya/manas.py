@@ -35,6 +35,9 @@ INDEX_HEADER = "【記録の索引"
 # 本番 435 回の注入の最大 3086 字・p99 2994 字が入る最小の切りのよい値。見直しは注入ログの `cut` の観測で行う。
 INJECTION_MAX_CHARS = 3200
 SIBLING_IDS_MAX = 5     # ② の行に並べる id の最大件数
+SHORTENED_FORMS = ("no_summary", "name_only")   # ① の行を縮めた形 (T3 6b): 要約なし / 名だけ
+NAME_ONLY_NOTE = "容量で省略"   # 名だけの形の文言 (裁定 4)
+NAME_ONLY_MAX_RATIO = 2   # 名だけの形は元の行の 1/ratio 以下のときだけ使う (工学の定数・裁定 7)
 GLOBAL_GROUPS_HEADER = "【全域の群 (件数のみ)】"
 
 
@@ -182,8 +185,9 @@ def _place_only(seed):
     return _place_text(seed.get("content", ""))
 
 
-def _render_seed_line_base(seed):
-    """発芽した種子1件を注入テキストの1行に描画する (記憶機能設計書§3.4・改修5 §7.2)。
+def _seed_line_parts(seed):
+    """発芽した種子1件の行の部品 `(本体, 要約なしの本体 か None, 名だけの部品)` (時の札の前。札の判定は種子ごとに 1 回)。
+    本体 = 注入テキストの1行 (`_render_seed_line_base`)。描画する (記憶機能設計書§3.4・改修5 §7.2)。
 
     描画は class でなく evidence で決める (spec 2026-10-30 §7 G)。user 接地の span を 1 本でも持つ種子は
     最新の user の逐語 span を主・content を「要約:」で従に添え、「(推定)」は付けない (混在 = user の span +
@@ -196,32 +200,59 @@ def _render_seed_line_base(seed):
     content = _one_line(seed.get("content", ""))
     strength = seed.get("strength")
     label = _kind_label(seed)
+    # 名だけの部品 = (label, 単位, 字数, 一部問いの札 か "", 一部推定 か "")。字数は (1) が本文に描く文字列の字数 (T3 6b)
     # 再開点 には G の枝を使わない (従来の class 別の描画のまま)。sansho 欄の無い旧形式は content のみ。
     if _g_branch_applies(seed):
         span = _user_span_text(seed)
         partial = "・一部推定" if _has_assistant_evidence(seed) else ""
         heading = _mixed_heading(seed)
         if heading is not None:
-            return "- {}: {}(強度{}・逐語: {}{})".format(label, heading, strength, span, partial)
+            return ("- {}: {}(強度{}・逐語: {}{})".format(label, heading, strength, span, partial), None,
+                    (label, "逐語", len(span), "", partial))
         shown = _latest_user_evidences(seed)
         doubt, keep = _doubt_tag(seed, shown)
         if conjecture_only(seed, shown):   # #121 A': 推量だけの 決定 は見出しを「決定(推量)」・要約なし (keep のときだけ #120 と揃えて残す)
             summary = "要約: {}・".format(content) if doubt is not None and keep else ""
-            return "- 決定(推量): {}(強度{}・{}{}{})".format(span, strength, summary, doubt, partial) if doubt is not None else \
+            base = "- 決定(推量): {}(強度{}・{}{}{})".format(span, strength, summary, doubt, partial) if doubt is not None else \
                 "- 決定(推量): {}(強度{}{})".format(span, strength, partial)
+            return base, None, ("決定(推量)", "逐語", len(span), doubt or "", partial)
         if doubt is not None:   # 要約を外して札、断定が行から消えるときは要約を残して札 (spec 2026-10-30-doubt-in-decision-summary §7)
             summary = "要約: {}・".format(content) if keep else ""
-            return "- {}: {}(強度{}・{}{}{})".format(label, span, strength, summary, doubt, partial)
-        return "- {}: {}(強度{}・要約: {}{})".format(label, span, strength, content, partial)
+            return ("- {}: {}(強度{}・{}{}{})".format(label, span, strength, summary, doubt, partial), None,
+                    (label, "逐語", len(span), doubt, partial))
+        return ("- {}: {}(強度{}・要約: {}{})".format(label, span, strength, content, partial),
+                "- {}: {}(強度{}{})".format(label, span, strength, partial),
+                (label, "逐語", len(span), "", partial))
     if sansho_class == "圓成實":
         span = _latest_span(seed)
         if span:
-            return "- {}: {}(強度{}・要約: {})".format(label, span, strength, content)
-        return "- {}: {}(強度{})".format(label, content, strength)
+            return ("- {}: {}(強度{}・要約: {})".format(label, span, strength, content),
+                    "- {}: {}(強度{})".format(label, span, strength), (label, "内容", len(span), "", ""))
+        return "- {}: {}(強度{})".format(label, content, strength), None, (label, "内容", len(content), "", "")
     if sansho_class == "依他起":
         place = _place_only(seed)
-        return "- {}(推定): {}(強度{})".format(label, content if place is None else place, strength)
-    return "- {}: {}(強度{})".format(label, content, strength)
+        body = content if place is None else place
+        return ("- {}(推定): {}(強度{})".format(label, body, strength), None,
+                ("{}(推定)".format(label), "内容", len(body), "", ""))
+    return "- {}: {}(強度{})".format(label, content, strength), None, (label, "内容", len(content), "", "")
+
+
+def _render_seed_line_base(seed):
+    """発芽した種子1件を注入テキストの1行に描画する (`_seed_line_parts` の本体)。"""
+    return _seed_line_parts(seed)[0]
+
+
+def _seed_line_forms(seed):
+    """① の 1 行の 3 つの形 `(行 (1), 行 (2) か None, 行 (3))` (純粋・T3 6b、設計書 2026-11-25-recall-capacity §6.4)。
+    (1) = `_render_seed_line(seed)` と同じ。(2) = 要約を外した形 (外すと断定が行から消える形・もともと要約の無い形は None)。
+    (3) = 名だけの形 `- 決定: #12 (逐語 640 字・容量で省略・強度1・往復 7)` (逐語は切らない・`前の言` と要約は付けない)。札の判定は
+    種子ごとに 1 回 (`_seed_line_parts` の 1 回)。"""
+    base, nosum, (label, unit, n, doubt, partial) = _seed_line_parts(seed)
+    rtag = _recency_tag(seed)
+    name = "- {}: #{} ({} {} 字・{}・強度{}{}{}{})".format(
+        label, seed.get("id"), unit, n, NAME_ONLY_NOTE, seed.get("strength"),
+        "・" + doubt if doubt else "", partial, "・" + rtag if rtag else "")
+    return _with_recency(base, seed), (_with_recency(nosum, seed) if nosum is not None else None), name
 
 
 def _render_index_line_base(seed):
@@ -513,7 +544,8 @@ class ManasStore:
         `entries` = `[{"seed", "group"}]` (③ の順・group は dict か None)。`siblings` = `[{"group", "fired_ids",
         "listable_ids"}]`。`global_counts` = `[{"kind", "groups", "seeds"}]`。戻り値 dict:
         text / shown_seed_ids (描画された ①) / index_seeds (描画された ③ の種子) / sibling_lines (描画された ②) /
-        groups (描画された ③ の群) / global (描画された ④。落ちたら []) / cut ({"germinated","siblings","index","global"})。
+        groups (描画された ③ の群) / global (描画された ④。落ちたら []) / cut ({"germinated","siblings","index","global"}) /
+        shortened ({"no_summary": [id…], "name_only": [id…]} = ① で縮めて描いた種子の id・描いた順・縮めなかった行は入らない)。
         """
         if max_chars is None:
             max_chars = INJECTION_MAX_CHARS     # 呼び出し時に引く (テストが差し替えられる)
@@ -538,9 +570,16 @@ class ManasStore:
         seed_lines = {}
         entry_lines = {}
 
+        seed_forms = {}             # ① の添字 -> `_seed_line_forms` (札の判定は種子ごとに 1 回)
+
+        def forms_of(i):
+            if i not in seed_forms:
+                seed_forms[i] = _seed_line_forms(top[i])
+            return seed_forms[i]
+
         def seed_line(i):
             if i not in seed_lines:
-                seed_lines[i] = _render_seed_line(top[i])
+                seed_lines[i] = forms_of(i)[0]
             return seed_lines[i]
 
         def entry_line(j):
@@ -585,10 +624,26 @@ class ManasStore:
         if resume_line[0] and not fits():
             resume_line[0] = ""     # 枠と最小形の再開点でも上限を超える: 再開点の行を落とす (cut には数えない)
 
-        # ① 発芽
+        # ① 発芽。行が入らないときだけ、(2) 要約なし → (3) 名だけ (元の行の 1/NAME_ONLY_MAX_RATIO 以下のときだけ) の順に試す
+        # (6b)。逐語は切らない。行ごとに独立に決める (前の行は縮め直さない)。どれも入らなければそこで ① を打ち切る。
+        shortened = {form: [] for form in SHORTENED_FORMS}
         for i in range(len(top)):
             shown_top.append(i)
-            if not fits():
+            if fits():
+                continue
+            full, no_summary, name_only = forms_of(i)
+            placed = False
+            for form, line in (("no_summary", no_summary),
+                               ("name_only", name_only if NAME_ONLY_MAX_RATIO * len(name_only) <= len(full) else None)):
+                if line is None:
+                    continue
+                seed_lines[i] = line
+                if fits():
+                    shortened[form].append(top[i].get("id"))
+                    placed = True
+                    break
+            if not placed:
+                seed_lines[i] = full
                 shown_top.pop()
                 break
         cut["germinated"] = len(top) - len(shown_top)
@@ -668,6 +723,7 @@ class ManasStore:
             ],
             "global": [dict(g) for g in global_counts] if glob_on[0] else [],
             "cut": cut,
+            "shortened": {form: list(ids) for form, ids in shortened.items()},
         }
 
     def build_injection(self, seeds, index=(), index_total=None, resume=None):
@@ -696,6 +752,7 @@ class ManasStore:
             "session_id": session_id,
             "project": project,
             "cut": dict(composed["cut"]),
+            "shortened": {form: list(ids) for form, ids in composed["shortened"].items()},
         }
         self._append_log(entry)
         # 保存はしない: 呼び出し側 (engine.recall -> `_locked`) が op の後に 1 回保存する (#37)。

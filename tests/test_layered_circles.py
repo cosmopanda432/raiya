@@ -547,7 +547,7 @@ class TestExplainEqualsRecall(_StateCase):
         r = eng.recall(Q_ALL, project=P)
         self.assertEqual(json.loads(json.dumps(r["circles"], ensure_ascii=False)), r["circles"])
         self.assertEqual(set(r), {"seeds", "narrative", "index", "resume", "circles", "alaya_warning", "manas_warning"})
-        self.assertEqual(set(r["circles"]), {"siblings", "groups", "global", "cut", "chars", "max_chars"})
+        self.assertEqual(set(r["circles"]), {"siblings", "groups", "global", "cut", "shortened", "chars", "max_chars"})
         self.assertEqual(set(r["circles"]["cut"]), {"germinated", "siblings", "index", "global"})
         self.assertEqual(r["circles"]["max_chars"], INJECTION_MAX_CHARS)
 
@@ -726,7 +726,7 @@ class TestComposeInjectionBudget(unittest.TestCase):
         text = self.store.inject([_seed(1, ["a"])], 3, index=[_seed(2, ["b"])], ts="t", session_id="s", project=P)
         row = self.store.state["log"][-1]
         self.assertEqual(list(row), ["life", "ego_weight", "injected_text", "seed_ids", "index_ids", "ts", "session_id",
-                                     "project", "cut"])
+                                     "project", "cut", "shortened"])
         self.assertEqual((row["injected_text"], row["index_ids"], row["seed_ids"]), (text, [2], [1]))
         self.assertEqual(row["cut"], {"germinated": 0, "siblings": 0, "index": 0, "global": 0})
 
@@ -800,7 +800,7 @@ class TestExplainCli(_StateCase):
         self.write()
         code, out, _ = self.run_cli("--json", "explain", Q_ALL, "--project", P)
         data = json.loads(out)
-        self.assertEqual(set(data["circles"]), {"siblings", "groups", "global", "cut", "chars", "max_chars"})
+        self.assertEqual(set(data["circles"]), {"siblings", "groups", "global", "cut", "shortened", "chars", "max_chars"})
 
     def test_labels_are_escaped(self):
         seeds = [_seed(1, ["a\x1b[31m", "b"], content="ひとつ"), _seed(2, ["a\x1b[31m", "b"], content="ふたつ")]
@@ -844,7 +844,7 @@ class TestMcpRecallCarriesCircles(_StateCase):
             code, stderr = server.close()
         self.assertEqual(code, 0, stderr)
         self.assertEqual(set(body), {"seeds", "narrative", "index", "resume", "circles", "alaya_warning", "manas_warning"})
-        self.assertEqual(set(body["circles"]), {"siblings", "groups", "global", "cut", "chars", "max_chars"})
+        self.assertEqual(set(body["circles"]), {"siblings", "groups", "global", "cut", "shortened", "chars", "max_chars"})
         self.assertEqual(body["circles"]["global"], [{"kind": "決定", "groups": 1, "seeds": 2}])
         self.assertEqual(body["circles"]["chars"], len(body["narrative"]))
 

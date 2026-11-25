@@ -1902,14 +1902,16 @@ class TestRenderG(_StoreCase):
         resume = {"id": 2, "kind": "再開点", "content": "c", "strength": 1, "sansho": "依他起", "evidences": ev}
         self.assertEqual(self.manas.build_narrative([resume]).splitlines()[1], "- 再開点(推定): c(強度1)")
 
-    def test_long_mixed_line_is_cut_and_counted(self):
+    def test_long_mixed_line_becomes_name_only(self):
+        # 6b (T3): 長い混在の行は、入らなければ名だけの形で描かれ (切れた数には数えない)、逐語は切らない
         seed = {"id": 1, "kind": "決定", "content": "要" * 200, "strength": 2, "sansho": "依他起",
                 "evidences": [{"source": "user", "span": "長" * (INJECTION_MAX_CHARS + 100)},
                               {"source": "assistant", "span": "a"}]}
         composed = self.manas.compose_injection([seed])
         self.assertLessEqual(len(composed["text"]), INJECTION_MAX_CHARS)
-        self.assertEqual(composed["shown_seed_ids"], [])
-        self.assertGreaterEqual(composed["cut"]["germinated"], 1)
+        self.assertEqual(composed["shown_seed_ids"], [1])
+        self.assertEqual(composed["cut"]["germinated"], 0)
+        self.assertIn("- 決定: #1 (逐語 3300 字・容量で省略・強度2・一部推定)", composed["text"])
 
 
 if __name__ == "__main__":
