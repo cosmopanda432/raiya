@@ -95,6 +95,7 @@ result = engine.consolidate()  # {"window": [1, 2, ...], "proposals": [...], "de
 - [state](https://github.com/cosmopanda432/raiya/blob/master/manual/state.md): `raiya.db` の中身、台帳・種子スキーマ、復旧、多重書き手対策
 - [公開 API・環境変数・設定ファイル](https://github.com/cosmopanda432/raiya/blob/master/manual/api.md): 凍結した契約、環境変数、`config.yaml`
 - [テスト・receipts・パッケージ構成](https://github.com/cosmopanda432/raiya/blob/master/manual/receipts.md): テストの回し方、効くことの証拠 (receipts §5.1〜§5.4)、ファイル構成
+- [関連研究](https://github.com/cosmopanda432/raiya/blob/master/manual/related-work.md): 先行研究・ソフトウェア工学との対応と、LLM の記憶システムとの違い
 
 ## 止めきれないもの
 
