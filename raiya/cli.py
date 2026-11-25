@@ -11,7 +11,7 @@ cosmicanalysis/Eight_Consciousness/agent.py の直系)。三能変パイプラ�
 
 起動: python3 -m raiya.cli  (project = 起動時 cwd の git トップ。改修5 §4.2)
 
-環境変数: backend.py / README.md を参照。RAIYA_STATE_DIR で永続化先を上書きできる
+環境変数: backend.py / manual/api.md を参照。RAIYA_STATE_DIR で永続化先を上書きできる
 (既定 ./state、主にテスト・複数人格の切り替え用)。
 
 コマンド:

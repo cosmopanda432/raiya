@@ -20,7 +20,7 @@ tools/list、tools/call、JSON-RPC のエラー形、Streamable HTTP の HTTP �
 種子は削除も減衰もされない (改修4); それでも生 (life) の二重計上は `planted_at`/`miss_streak`/
 `last_fired` の意味を壊すので、サーバ起動や health check で生を進めない規律は維持する。
 hooks を使わない運用では MCP 経由では生が進まなくなるが、`memory_audit` で life を観測
-できれば足りる (README の「Claude Code hooks」節・「MCP サーバとして」節に明記)。
+できれば足りる (manual/hooks.md の「Claude Code hooks」節・manual/usage.md の「MCP サーバとして」節に明記)。
 
 tools: memory_recall / memory_imprint / memory_audit / memory_introspect_material /
        memory_record_introspection (§4.3)。

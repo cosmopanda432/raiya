@@ -604,7 +604,7 @@ class MemoryEngine:
             # (pending_count() でもう一度全行を読まない)。
             bases = self.ledger.unconsolidated_bases()
             return {
-                # 現在の生 (README: MCP 経由でも life を観測できる)。_locked が reload 済みなので
+                # 現在の生 (manual/usage.md・manual/hooks.md: MCP 経由でも life を観測できる)。_locked が reload 済みなので
                 # 他プロセス (hooks) が進めた最新の生番号。
                 "life": self.alaya.current_life,
                 "seed_count": len(seeds),

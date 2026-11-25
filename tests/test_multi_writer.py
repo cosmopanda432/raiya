@@ -175,13 +175,13 @@ class TestLockFileLocation(unittest.TestCase):
         engine.audit()
         self.assertTrue(os.path.exists(os.path.join(self.tmpdir, ".lock")))
 
-    def test_gitignore_and_readme_mention_the_lock_file(self):
+    def test_gitignore_and_state_manual_mention_the_lock_file(self):
         with open(os.path.join(REPO_ROOT, ".gitignore"), "r", encoding="utf-8") as f:
             gitignore = f.read()
-        with open(os.path.join(REPO_ROOT, "README.md"), "r", encoding="utf-8") as f:
-            readme = f.read()
+        with open(os.path.join(REPO_ROOT, "manual", "state.md"), "r", encoding="utf-8") as f:
+            state_manual = f.read()
         self.assertIn(".lock", gitignore)
-        self.assertIn(".lock", readme)
+        self.assertIn(".lock", state_manual)
 
 
 class TestStateLockFallbackWithoutFcntl(unittest.TestCase):

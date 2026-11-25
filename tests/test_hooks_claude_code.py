@@ -1732,7 +1732,7 @@ class TestStopRecordsLedgerAndConsolidates(_HooksTestCase):
         """読み取れない出力が続く窓は「5 往復に 1 回」ではなく **Stop のたびに** 再試行
         される (pending が CONSOLIDATE_EVERY 未満へ戻らないため)。有界なのはプロンプト
         の大きさ (CONSOLIDATE_WINDOW_MAX) だけで、呼び出し回数は改修4 以前の
-        「毎往復 propose」と同じ = README のコスト記述はこの事実に合わせてある。
+        「毎往復 propose」と同じ = manual/hooks.md「コストへの注意」の記述はこの事実に合わせてある。
         """
         cut_off = '[{"content": "x", "evidence": [{"span": "'  # 常に読み取れない出力
         turns = hooks.CONSOLIDATE_EVERY + 3
