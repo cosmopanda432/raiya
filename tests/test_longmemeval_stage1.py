@@ -11,6 +11,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 for _p in (_ROOT, os.path.join(_ROOT, "scripts")):
@@ -344,6 +345,12 @@ class TestDistractorAccounting(_Base):
         self.assertEqual(r["summary"]["by_arm"]["A-a+distract"]["evidence_merged_into_distractor_questions"], 1)
         self.assertEqual(r["summary"]["by_arm"]["A-a"]["evidence_merged_into_distractor_questions"], 0)
 
+    def test_merged_with_evidence_text_is_counted(self):
+        r = self.run_fixture(data=_merge_fixture(), extra=["--distractor-per-type", "1"])
+        by = r["summary"]["by_arm"]
+        self.assertEqual(by["A-a+distract"]["merged_with_evidence_text_questions"], 1)
+        self.assertEqual(by["A-a"]["merged_with_evidence_text_questions"], 0)
+
     def test_distractor_conditions_use_the_same_rule_as_evidence(self):
         q = "What replaced the gym on Tuesdays, instead of lifting?"
         d1 = "I love gardening on Tuesdays with fresh tomatoes."          # 質問文と共有する語 Tuesdays
@@ -362,6 +369,53 @@ class TestDistractorAccounting(_Base):
             self.assertEqual(got, want)
         self.assertEqual(want[1], [])
         self.assertTrue(r["rows"][0]["arms"]["A-a+distract"]["distractor_proposals"][0]["conditions"])
+
+
+class TestContentRule(_Base):
+    def test_head120_takes_first_sentence_up_to_120_chars(self):
+        self.assertEqual(lm.make_content("I like art. I also paint.", "head120"), "I like art.")
+        self.assertEqual(lm.make_content("x" * 300, "head120"), "x" * 120)
+        self.assertEqual(lm.make_content("a  b\nc", "span"), "a  b\nc")
+
+    def test_unknown_rule_raises(self):
+        with self.assertRaises(ValueError):
+            lm.make_content("a", "zzz")
+
+    def test_cli_head120_is_recorded_in_meta(self):
+        r = self.run_fixture(extra=["--content-rule", "head120"])
+        self.assertIn("head120", r["meta"]["content_rule"])
+        self.assertTrue(self.run_fixture(out_name="out2")["meta"]["content_rule"].startswith("span:"))
+
+
+class TestContentRuleReachesSeeds(_Base):
+    def test_cli_rule_reaches_build_state(self):
+        seen = []
+        real = lm._build_state
+
+        def spy(*a, **k):
+            seen.append(a[5] if len(a) > 5 else k.get("content_rule"))
+            return real(*a, **k)
+
+        with mock.patch.object(lm, "_build_state", spy):
+            self.run_fixture(extra=["--content-rule", "head120"])
+        self.assertTrue(seen)
+        self.assertEqual(set(seen), {"head120"})
+
+    def _contents(self, rule):
+        q = copy.deepcopy(_fixture()[0])
+        q["haystack_sessions"][0][0]["content"] = "I switched to yoga classes on Tuesdays. I skipped the gym too."
+        rts, _ = lm.build_round_trips(q["haystack_session_ids"], q["haystack_sessions"])
+        plan = lm._plan(rts, False)
+        engine, tmp, _, _ = lm._build_state(q, rts, plan, "A", "決定", rule)
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        return [x["content"] for x in engine.inspect_seeds()]
+
+    def test_content_rule_decides_the_planted_content(self):
+        with lm._env(RAIYA_CONFIG=""):
+            full = self._contents("span")
+            head = self._contents("head120")
+        self.assertEqual(full, ["I switched to yoga classes on Tuesdays. I skipped the gym too."])
+        self.assertEqual(head, ["I switched to yoga classes on Tuesdays."])
 
 
 class TestOutRequired(_Base):

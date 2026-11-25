@@ -274,6 +274,22 @@ def _span_of(role, text):
     return strip_private(text) if role == "assistant" else strip_pasted(strip_private(text))
 
 
+CONTENT_RULES = ("span", "head120")
+HEAD120_CHARS = 120
+
+
+def make_content(span, rule):
+    """提案の content を span から作る。"span" = span そのまま。"head120" = 空白を畳んだ最初の 1 文 (最大 120 字)。"""
+    if rule == "span":
+        return span
+    if rule == "head120":
+        flat = " ".join(span.split())
+        m = re.search(r"[.?!](?=\s|$)", flat)
+        first = flat[:m.end()] if m else flat
+        return first[:HEAD120_CHARS]
+    raise ValueError("content rule must be one of {}: {!r}".format(CONTENT_RULES, rule))
+
+
 def _reason_key(reason):
     return re.sub(r"\d+", "N", str(reason or ""))[:160]
 
@@ -294,7 +310,7 @@ def _plan(rts, with_distractors):
     return plan
 
 
-def _build_state(q, rts, plan, edge, kind):
+def _build_state(q, rts, plan, edge, kind, content_rule="span"):
     """腕 (edge, kind) の状態を作って提案を植える。戻り値: (engine, tmp, proposals の記録, 邪魔の数え)。呼び側が tmp を消す。"""
     from raiya.engine import MemoryEngine
     from raiya.ledger import LedgerTurn
@@ -329,7 +345,7 @@ def _build_state(q, rts, plan, edge, kind):
                     records.append(meta)
                     continue
                 proposals.append({
-                    "content": span, "conditions": conds, "polarity": "無記", "kind": kind, "action": "new",
+                    "content": make_content(span, content_rule), "conditions": conds, "polarity": "無記", "kind": kind, "action": "new",
                     "evidence": [{"source": role, "span": span}],
                 })
                 metas.append(meta)
@@ -441,7 +457,7 @@ def _distractor_proposals(records):
             for r in records if r["purpose"] == "distractor"]
 
 
-def run_question(q, edges, distract):
+def run_question(q, edges, distract, content_rule="span"):
     """1 問を全腕で測って行 (dict) を返す。`distract` なら邪魔の腕も走らせる。例外は呼び側 (run_all) が受ける。"""
     rts, shape = build_round_trips(q["haystack_session_ids"], q["haystack_sessions"])
     turns = [t for s in q["haystack_sessions"] for t in s]
@@ -466,7 +482,7 @@ def run_question(q, edges, distract):
         for edge in edges:
             for kind in ("決定", "性向"):
                 t0 = time.perf_counter()
-                engine, tmp, records, dist = _build_state(q, rts, plan, edge, kind)
+                engine, tmp, records, dist = _build_state(q, rts, plan, edge, kind, content_rule)
                 try:
                     for cname, ckind, env in CONFIG_ARMS:
                         if ckind != kind:
@@ -545,6 +561,8 @@ def _summ_arm(rows, arm):
         "reject_with_question_mark_span": q_rejects,
         "proposal_kinds_after_reading": dict(sorted(kinds.items())),
         "evidence_merged_into_distractor_questions": sum(1 for a in ok if a["merged_into_distractor_ids"]),
+        "merged_with_evidence_text_questions": sum(
+            1 for a in ok if a["class"] == "merged_into_distractor" and a["narrative_has_evidence_text"]),
         "germinated_questions": sum(1 for a in ok if a["germinated"]),
         "rendered_first_circle_questions": sum(1 for a in ok if a["rendered_first_circle"]),
         "rendered_index_questions": sum(1 for a in ok if a["rendered_index"]),
@@ -640,7 +658,7 @@ def _frame_chars():
             "index_header_without_counts": len(manas.INDEX_HEADER)}
 
 
-def run_all(data, edges, distract_per_type, progress=None):
+def run_all(data, edges, distract_per_type, progress=None, content_rule="span"):
     distract_ids = _select_distract(data, distract_per_type) if distract_per_type else set()
     rows, timing = [], {}
     shapes = {"sessions": 0, "first_assistant": 0, "non_alternating": 0, "adjacent_same_role": 0, "empty_turns": 0}
@@ -649,7 +667,7 @@ def run_all(data, edges, distract_per_type, progress=None):
     for n, q in enumerate(data):
         t0 = time.perf_counter()
         try:
-            row, shape, qtiming = run_question(q, edges, q["question_id"] in distract_ids)
+            row, shape, qtiming = run_question(q, edges, q["question_id"] in distract_ids, content_rule)
             for k in shapes:
                 shapes[k] += shape[k]
             ha_sessions = {sid for sid, s in zip(q["haystack_session_ids"], q["haystack_sessions"])
@@ -663,6 +681,12 @@ def run_all(data, edges, distract_per_type, progress=None):
         if progress and (n + 1) % 25 == 0:
             progress("{}/{} 問 ({:.0f} 秒)".format(n + 1, len(data), time.perf_counter() - t_all))
     return rows, shapes, mismatch, {"total_seconds": round(time.perf_counter() - t_all, 2), "per_question": timing}
+
+
+CONTENT_RULE_TEXT = {
+    "span": "span: 案 X: content = span (根拠の turn の全文。<private>・貼り付けは engine の門と同じ規則で剥がした後)",
+    "head120": "head120: content = span の空白を畳んだ最初の 1 文 (最初の [.?!] で終わり、最大 120 字)。接地する span は全文のまま",
+}
 
 
 def _meta(args, edges, sha, nbytes, data, selected):
@@ -694,7 +718,7 @@ def _meta(args, edges, sha, nbytes, data, selected):
             "cap": MAX_CONDITIONS,
             "empty": "縁が 0 語の提案は imprint に渡さず decision=no_condition と数える (門の落ちと分ける)",
         },
-        "content_rule": "案 X: content = span (根拠の turn の全文。<private>・貼り付けは engine の門と同じ規則で剥がした後)",
+        "content_rule": CONTENT_RULE_TEXT[args.content_rule],
         "round_trip_rule": "user の turn と直後の assistant の turn で 1 往復。後ろに assistant が無ければ assistant_text=\"\"、"
                            "assistant が単独なら user_text=\"\" の往復。record_turn は根拠 (と邪魔の腕では user の turn) の往復だけを"
                            "haystack の順に流し、返った ledger_id で LedgerTurn を組んで imprint に渡す (窓 = その 1 往復)。"
@@ -720,6 +744,7 @@ def main(argv=None):
     ap.add_argument("--limit-per-type", type=int, default=None, help="question_type ごとに先頭から N 問だけ走らせる")
     ap.add_argument("--distractor-per-type", type=int, default=0, help="型ごとの先頭 N 問に邪魔の種子の腕を足す (0 = 無し)")
     ap.add_argument("--edges", default="A,B", help="縁の腕 (A,B)")
+    ap.add_argument("--content-rule", choices=CONTENT_RULES, default="span", help="提案の content の作り方 (既定 span = 従来)")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
     edges = tuple(e for e in args.edges.split(",") if e)
@@ -738,7 +763,7 @@ def main(argv=None):
     with _env(RAIYA_CONFIG=""):
         config._reset()
         try:
-            rows, shapes, mismatch, timing = run_all(selected, edges, args.distractor_per_type, progress)
+            rows, shapes, mismatch, timing = run_all(selected, edges, args.distractor_per_type, progress, args.content_rule)
             meta = _meta(args, edges, sha, nbytes, data, selected)
         finally:
             config._reset()
