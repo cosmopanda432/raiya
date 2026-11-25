@@ -1263,6 +1263,32 @@ def _run_groups(text):
     return _RUN_FIND.findall(sansho._n(text).lower())
 
 
+_RUN_INNER_SEPARATORS = "_-./"   # ASCII の組 (`_RUN_FIND` の `[0-9a-z_\-./]`) のうち ASCII 英数字でない字 (= 片の中の語頭の境)
+_SCAN_CHARS_PER_OP = 64   # 片を `in` で走査する費用の単位 (64 字 = Python の 1 手)。語頭から引く枝との比較にだけ使う
+_RUN_SEP_CLASS = "[" + re.escape(_RUN_INNER_SEPARATORS) + "]"   # `_RUN_INNER_SEPARATORS` から作る (片方だけ変えてずれないように)
+_RUN_SEP_RE = re.compile(_RUN_SEP_CLASS)
+_RUN_SEP_SPLIT = re.compile(_RUN_SEP_CLASS + "+")
+
+
+def _split_ascii_runs(runs):
+    """`runs` のうち ASCII の連なりを、区切り (`_RUN_INNER_SEPARATORS`) を含まないもの / 内に含むものの list に分け、
+    含まないものの先頭の字の集合を添えて返す (純粋)。"""
+    plain, sep = [], []
+    for r in runs:
+        if ord(r[0]) < 128:
+            (sep if _RUN_SEP_RE.search(r) else plain).append(r)
+    return plain, sep, {r[0] for r in plain}
+
+
+def _ascii_run_at_word_start(run, piece):
+    """ASCII の連なり `run` (`_input_runs` の ASCII の連なり = 最初の字は ASCII 英数字・3 字以上) が、ASCII の片 `piece`
+    (`_run_groups` の ASCII の組) の位置 0 か `_RUN_INNER_SEPARATORS` の字の直後に現れるとき真 (純粋・正規表現なし)。
+    この前提の下で `_occurs_as_word(run, piece)` と同じ値 (語頭の境だけ・T2、設計書 2026-11-25-recall-capacity §6.2)。"""
+    if piece.startswith(run):
+        return True
+    return any((sep + run) in piece for sep in _RUN_INNER_SEPARATORS)
+
+
 def _input_runs(text):
     """入力の「連なり」の集合 (純粋)。`_run_groups` の各組の両端の `-./_` を落とし、空は捨て、ASCII の組は 3 字以上かつ
     数字だけでないもの、非 ASCII の組は 2 字以上のものだけ残す。str でなければ空集合 (index-reach spec §7、#106)。"""
@@ -1289,9 +1315,13 @@ def _is_user_span_evidence(evidence):
 
 def _index_relevance(seed, runs, lengths=None):
     """索引の「今の入力との関わり」(純粋・大きいほど関わる)。`runs` (= `_input_runs`) のうち、種子の user の span
-    (`_is_user_span_evidence`、`sansho._n(..).lower()`) のどれかに部分文字列として在るものの字数の和 (同じ連なりは 1 回)。
-    assistant の span・content・縁は読まない。`runs` が空なら 0。計算量は入力の長さに依らない: span を入力と同じ切り方で
-    組に分け、各組の部分文字列 (長さは `runs` に在る長さだけ) を `runs` の集合で引く (`lengths` = 長さの昇順、省略時は計算)。"""
+    (`_is_user_span_evidence`、`sansho._n(..).lower()`) のどれかに「現前」するものの字数の和 (同じ連なりは 1 回)。現前 =
+    非 ASCII の連なりは部分文字列として在ること、ASCII の連なりは span の片の語頭 (片の先頭か `-./_` の直後) に在ること
+    (8d・T2。`_occurs_as_word` と同じ規則で、右は見ない)。assistant の span・content・縁は読まない。`runs` が空なら 0。
+    計算量は入力の長さに依らない: span を入力と同じ切り方で組に分け、非 ASCII の組は各部分文字列 (長さは `runs` に在る長さだけ)
+    を `runs` の集合で引く。ASCII の組は、区切りで割った異なり語の先頭部分を `runs` の集合で引き (区切りを含まない連なり)、
+    区切りを内に含む連なりだけ、語頭の位置から引くか残りの連なりごとに片を調べるかの安い方 (費用は片の長さ込みで比べる)
+    (`lengths` = 長さの昇順、省略時は計算)。"""
     if not runs:
         return 0
     evidences = seed.get("evidences")
@@ -1300,6 +1330,7 @@ def _index_relevance(seed, runs, lengths=None):
     if lengths is None:
         lengths = sorted({len(r) for r in runs})
     hit = set()
+    plain_runs = sep_runs = first_chars = None   # 区切りを含まない / 内に含む ASCII の連なりの一覧 (必要になったとき 1 回だけ作る)
     for e in evidences:
         if not _is_user_span_evidence(e):
             continue
@@ -1308,6 +1339,50 @@ def _index_relevance(seed, runs, lengths=None):
             sizes = [size for size in lengths if size <= n]
             pending = len(runs) - len(hit)   # hit ⊆ runs。数だけ比べる (片ごとに runs を舐めると入力の長さに比例する)
             if not pending or not sizes:
+                continue
+            if ord(piece[0]) < 128:
+                has_sep = _RUN_SEP_RE.search(piece) is not None
+                # 区切りを含まない連なり = 片の「語」(区切りで割った異なり語) の先頭部分。語の数 × 長さの数で引くか、
+                # 残りの連なりごとに片を調べるかの安い方 (費用は片の長さ込みで、下の (2) と同じ単位で比べる)
+                toks = set(_RUN_SEP_SPLIT.split(piece)) if has_sep else (piece,)
+                scan_cost = 4 * (1 + n // _SCAN_CHARS_PER_OP)   # 連なり 1 本ぶん (`_ascii_run_at_word_start` は片を 4 回走査する)
+                by_tokens = len(toks) * len(sizes)
+                by_runs = False
+                if by_tokens > pending:   # 連なりの数より多い見込みのときだけ、一覧を作って数え直す
+                    if plain_runs is None:
+                        plain_runs, sep_runs, first_chars = _split_ascii_runs(runs)
+                    toks = [t for t in toks if t[:1] in first_chars]   # 先頭の字が違う語は、どの連なりの先頭部分でもない
+                    by_tokens = len(toks) * len(sizes)
+                    rest_plain = [r for r in plain_runs if r not in hit]
+                    by_runs = len(rest_plain) * scan_cost <= by_tokens
+                if by_runs:
+                    hit.update([r for r in rest_plain if _ascii_run_at_word_start(r, piece)])
+                else:
+                    for tok in toks:
+                        for size in sizes:
+                            if size > len(tok):
+                                break
+                            sub = tok[:size]
+                            if sub in runs:
+                                hit.add(sub)
+                if not has_sep:
+                    continue
+                # 区切りを内に含む連なり (src/app など)。語頭の位置から引くか、残りの連なりごとに片全体を調べるかの安い方。
+                # 後者の費用 = 残りの数 × 区切りの種類 (4) × (1 + 片の長さ / _SCAN_CHARS_PER_OP) (`_ascii_run_at_word_start` が
+                # 片を 4 回走査する。`in` の 1 字の走査は Python の 1 手より約 2 桁安いので 64 字を 1 手に数える。実測で決めた定数)
+                if sep_runs is None:
+                    plain_runs, sep_runs, first_chars = _split_ascii_runs(runs)
+                rest = [r for r in sep_runs if r not in hit]
+                if not rest:
+                    continue
+                n_starts = 1 + sum(piece.count(ch) for ch in _RUN_INNER_SEPARATORS)
+                if len(rest) * scan_cost <= n_starts * len(sizes):
+                    hit.update([r for r in rest if _ascii_run_at_word_start(r, piece)])
+                    continue
+                starts = [0] + [i + 1 for i, ch in enumerate(piece) if ch in _RUN_INNER_SEPARATORS]
+                wanted = set(rest)
+                for size in sizes:
+                    hit.update(wanted.intersection([piece[i:i + size] for i in starts if i + size <= n]))
                 continue
             if pending <= sum(n - size + 1 for size in sizes):
                 hit.update([r for r in runs if r not in hit and r in piece])   # 連なりの数のほうが少ない: run in piece
@@ -1751,10 +1826,14 @@ class AlayaStore:
         runs = _input_runs(input_text)
         if runs:
             lengths = sorted({len(r) for r in runs})   # 1 回だけ作る
+            relevance = {}   # この呼び出しの中だけ (id(seed) → 関わり。保存しない): 並べ替えと over の並べ直しで使い回す
 
             def order_key(pair):
                 seed = pair[0]
-                return (_kind_rank(_seed_kind(seed)), -_index_relevance(seed, runs, lengths)) + sansho.sansho_sort_key(seed)
+                rel = relevance.get(id(seed))
+                if rel is None:
+                    rel = relevance[id(seed)] = _index_relevance(seed, runs, lengths)
+                return (_kind_rank(_seed_kind(seed)), -rel) + sansho.sansho_sort_key(seed)
         else:
             def order_key(pair):
                 return _index_sort_key(pair[0])

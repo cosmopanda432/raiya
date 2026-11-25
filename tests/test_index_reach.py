@@ -79,7 +79,7 @@ class TestRelevance(unittest.TestCase):
 def _naive(seed, runs):
     spans = [alaya.sansho._n(e["span"]).lower() for e in seed.get("evidences") or []
              if alaya._is_user_span_evidence(e)]
-    return sum(len(r) for r in runs if any(r in sp for sp in spans))
+    return sum(len(r) for r in runs if any(alaya._occurs_as_word(r, sp) for sp in spans))
 
 
 def _rand_text(rng, n, pool):
@@ -105,6 +105,23 @@ class TestRelevanceEquivalenceAndOldShapes(unittest.TestCase):
                 {"source": "user", "span": _rand_text(rng, rng.randint(5, 40), self.POOL)},
             ]}
             self.assertEqual(alaya._index_relevance(seed, runs), _naive(seed, runs))
+
+    def test_matches_word_rule_on_ascii_heavy_fixture(self):
+        # 語の途中だけに当たる形が十分出る乱数 (T2)。部分一致の値と語頭の規則の値が違う回が在ることも固定する
+        rng = random.Random(8)
+        pool = list("aab_ ")
+        differing = 0
+        for _ in range(500):
+            runs = alaya._input_runs("".join(rng.choice(pool) for _ in range(rng.randint(5, 40))))
+            seed = {"evidences": [
+                {"source": "user", "span": "".join(rng.choice(pool) for _ in range(rng.randint(5, 80)))},
+                {"source": "user", "span": "".join(rng.choice(pool) for _ in range(rng.randint(5, 40)))},
+            ]}
+            spans = [alaya.sansho._n(e["span"]).lower() for e in seed["evidences"]]
+            substring = sum(len(r) for r in runs if any(r in sp for sp in spans))
+            self.assertEqual(alaya._index_relevance(seed, runs), _naive(seed, runs))
+            differing += substring != _naive(seed, runs)
+        self.assertGreaterEqual(differing, 50)
 
     def test_old_shaped_seeds_score_zero_without_error(self):
         runs = {"メッセージキュー"}
