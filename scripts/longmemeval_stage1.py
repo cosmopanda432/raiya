@@ -231,13 +231,13 @@ def classify(has_marker, has_user_marker, is_abs, planted, injected, failed=Fals
 
 
 def rendered_first_circle(seeds, cut_germinated, limit=None):
-    """① に描かれた種子の id。発芽した種子 (`explain_recall` の `seeds`) を class → 強度降順 (安定) に並べ、先頭 `limit` 件
+    """① に描かれた種子の id。発芽した種子 (`explain_recall` の `seeds` = 発芽の順) を class だけで安定に並べ、先頭 `limit` 件
     (= round(ego_weight × MAX_NARRATIVE_SEEDS)) を取り、`circles.cut.germinated` の分を末尾から除く。"""
     from raiya import sansho
 
     if limit is None:
         limit = default_first_circle_limit()
-    ordered = sorted(seeds, key=sansho.sansho_sort_key)[:limit]
+    ordered = sorted(seeds, key=lambda s: sansho.sansho_sort_key(s)[0])[:limit]
     keep = max(0, len(ordered) - cut_germinated)
     return [s["id"] for s in ordered[:keep]]
 

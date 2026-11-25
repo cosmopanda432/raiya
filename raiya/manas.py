@@ -462,10 +462,11 @@ class ManasStore:
 
     # --- 自己物語 (我見) ---
     def _top_germinated(self, seeds):
-        """① に描画する発芽種子 (ego_weight が件数を決める)。発芽順=クラス→強度降順。"""
+        """① に描画する発芽種子 (ego_weight が件数を決める)。受け取った順 (alaya の発芽順 = クラス→一致した縁の数→強度) を
+        保ち、クラスだけで安定に並べ直す (manas は一致数を知らない)。"""
         if not seeds:
             return []
-        return sorted(seeds, key=sansho.sansho_sort_key)[: self.rendered_fired_count()]
+        return sorted(seeds, key=lambda s: sansho.sansho_sort_key(s)[0])[: self.rendered_fired_count()]
 
     def rendered_fired_count(self):
         """① が描画する発芽種子の最大件数 (ego_weight で決まる)。"""
@@ -476,8 +477,8 @@ class ManasStore:
 
         ego_weight が高いほど多くの種子を反映し (最大 MAX_NARRATIVE_SEEDS)、
         ego_weight が下限に近づくほど反映する種子数が減り、色つけが薄くなる。
-        反映する上位 n 件の選定は発芽順=クラス(圓成實→依他起)→強度降順
-        (記憶機能設計書§3.4・sansho.sansho_sort_key) で行う。germinate() 側の並びを
+        反映する上位 n 件の選定は発芽順=クラス(圓成實→依他起)→(alaya の) 一致した縁の数→強度降順
+        (記憶機能設計書§3.4・alaya.germination_sort_key) で行う。germinate() 側の並びを
         ここで strength のみに崩すと、ego_weight が低いときに圓成實(逐語接地)が
         依他起(推定)より先に脱落しかねないため、同じ優先順位を再度適用する。
         """

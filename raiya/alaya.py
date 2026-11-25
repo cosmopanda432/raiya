@@ -1318,8 +1318,9 @@ def _index_relevance(seed, runs, lengths=None):
     (`_is_user_span_evidence`、`sansho._n(..).lower()`) のどれかに「現前」するものの字数の和 (同じ連なりは 1 回)。現前 =
     非 ASCII の連なりは部分文字列として在ること、ASCII の連なりは span の片の語頭 (片の先頭か `-./_` の直後) に在ること
     (8d・T2。`_occurs_as_word` と同じ規則で、右は見ない)。assistant の span・content・縁は読まない。`runs` が空なら 0。
-    計算量は入力の長さに依らない: span を入力と同じ切り方で組に分け、非 ASCII の組は各部分文字列 (長さは `runs` に在る長さだけ)
-    を `runs` の集合で引く。ASCII の組は、区切りで割った異なり語の先頭部分を `runs` の集合で引き (区切りを含まない連なり)、
+    計算量: 入力の字数そのものには比例しないが、入力の連なりの数 (`runs`) に比例する項 (種子ごとの連なりの分け、区切りを含む片ごとの
+    残りの一覧) と、span の片の字数に比例する項 (異なり語 × 長さの数、片の走査) がある。span を入力と同じ切り方で組に分け、非 ASCII の組は
+    各部分文字列 (長さは `runs` に在る長さだけ) を `runs` の集合で引く。ASCII の組は、区切りで割った異なり語の先頭部分を `runs` の集合で引き (区切りを含まない連なり)、
     区切りを内に含む連なりだけ、語頭の位置から引くか残りの連なりごとに片を調べるかの安い方 (費用は片の長さ込みで比べる)
     (`lengths` = 長さの昇順、省略時は計算)。"""
     if not runs:
@@ -1446,6 +1447,14 @@ def _needed_conditions(kind):
     return DISPOSITION_GERMINATION_CONDITIONS if kind == DEFAULT_KIND else 1
 
 
+def germination_sort_key(seed, matched):
+    """① の発芽順のキー (純粋・T4、設計書 2026-11-25-recall-capacity §6.3): class → 一致した縁の異なり語の数 (多いほど先、
+    照合の鍵と同じ `sansho._n(..).lower()` で数える = 重複した縁は 1) → 強度降順。同点は呼び手の安定ソートで倉庫の順。
+    `sansho.sansho_sort_key` は変えない (③ の並びなど他の場所が使う)。"""
+    n = len({sansho._n(c).lower() for c in matched})
+    return (sansho.sansho_sort_key(seed)[0], -n, -seed.get("strength", 0))
+
+
 class AlayaStore:
     """第八識の種子倉庫 (in-memory の論理)。ファイルも DB も知らない。
 
@@ -1570,7 +1579,7 @@ class AlayaStore:
 
         戻り値: 全種子の `(seed, fired, reason, matched_conditions)` のリスト。**状態は変えない**
         (seed は内部 state の dict そのもの。呼び出し側が書き換えないこと)。並び = 発芽する種子
-        (本番の発芽順 = クラス→strength 降順) → 上限で落ちた候補 (同じ順) → それ以外 (倉庫の順)。
+        (本番の発芽順 = `germination_sort_key`: クラス→一致した縁の異なり語の数→strength 降順) → 上限で落ちた候補 (同じ順) → それ以外 (倉庫の順)。
         `reason` は発芽したとき None、落ちたときは最初に引っかかった理由 (GERMINATION_REASON_*)。
         判定の順は superseded → 取り下げ → project → 強度 → 再開点 → 性向 → 双子 → 休眠 → 縁 → 上限。どれも独立の条件なので
         順序で発芽の結果は変わらない (理由の表示だけが決まる)。`shadows` は呼び手が計算済みの `_twin_shadows` を渡すとき
@@ -1622,7 +1631,7 @@ class AlayaStore:
                 rejected.append(
                     (seed, False, GERMINATION_REASON_CONDITIONS.format(len(matched), needed), matched)
                 )
-        candidates.sort(key=lambda pair: sansho.sansho_sort_key(pair[0]))
+        candidates.sort(key=lambda pair: germination_sort_key(pair[0], pair[1]))
         verdicts = [(seed, True, None, matched) for seed, matched in candidates[:GERMINATION_MAX]]
         verdicts += [(seed, False, GERMINATION_REASON_MAX, matched) for seed, matched in candidates[GERMINATION_MAX:]]
         return verdicts + rejected
@@ -1632,8 +1641,8 @@ class AlayaStore:
 
         縁は input_text と context_texts の各要素を**それぞれ**正規化した文字列に照合する
         (連結しない: 連結するとテキスト境界を跨いだ偽の一致が起こる)。閾値は
-        GERMINATION_THRESHOLD_BY_CLASS (圓成實 1 / 依他起 2)。発芽順=クラス→strength
-        降順、最大 GERMINATION_MAX 件。遍計所執は quarantine にのみ存在し seeds に無い。
+        GERMINATION_THRESHOLD_BY_CLASS (圓成實 1 / 依他起 2)。発芽順=クラス→一致した縁の異なり語の数 (多いほど先)→strength
+        降順 (`germination_sort_key`)、最大 GERMINATION_MAX 件。遍計所執は quarantine にのみ存在し seeds に無い。
 
         改修5 (kind 別の発芽規則):
           - 第一条件は `project` の一致 (全域 None の種子は常に可)。
@@ -1874,7 +1883,7 @@ class AlayaStore:
         fired_ids = {seed["id"] for seed in fired if _is_int(seed.get("id"))}
         # ① が実際に描画する発芽種子 (ego_weight が件数 `fired_limit` を決める)。③ の重複除去と ② はこれだけを見る:
         # 発芽したが ① に出ない種子は今までどおり ③ に落ちる (情報を落とさない)。
-        rendered = fired if fired_limit is None else sorted(fired, key=sansho.sansho_sort_key)[:fired_limit]
+        rendered = fired if fired_limit is None else fired[:fired_limit]   # fired は既に発芽の順 (manas と同じ集合)
         rendered_ids = {seed["id"] for seed in rendered if _is_int(seed.get("id"))}
         groups, by_seed = _seed_groups_by_seed([s for s in seeds if _project_matches(s, project)])
         members_of = self._group_members(seeds, by_seed)

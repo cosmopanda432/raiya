@@ -382,6 +382,16 @@ class TestReadOnly(_Case):
             eng.compact(WINDOW, TEXT, project=P)
 
 
+class TestGerminationOrderInCompact(_Case):
+    def test_germinated_circle_follows_germination_order(self):
+        # T4: ① の根拠を詰める順も、発芽の順 (class → 一致した縁の異なり語の数 → 強度) に従う
+        seeds = [_seed(1, ["kafka"], strength=3, project=None, evidences=[2]),
+                 _seed(2, ["kafka", "queue"], strength=1, project=None, evidences=[4])]
+        eng = self.write(seeds)
+        r = eng.compact(WINDOW, "kafka queue?", project=P)
+        self.assertEqual([s["id"] for s in r["seeds"] if s["circle"] == "germinated"], [2, 1])
+
+
 class TestGerminationSingleSource(_Case):
     def _check(self):
         seeds = [

@@ -167,17 +167,24 @@ class TestClassify(unittest.TestCase):
 
 
 class TestRenderedFirstCircle(unittest.TestCase):
-    def test_sorted_by_class_then_strength_limited_then_cut_from_the_tail(self):
+    def test_keeps_given_order_within_class_limited_then_cut_from_the_tail(self):
+        # `explain_recall` の `seeds` は発芽の順 (class → 一致した縁の数 → 強度)。class だけで安定に並べる (T4)
         seeds = [
             {"id": 1, "sansho": "依他起", "strength": 5},
             {"id": 2, "sansho": "圓成實", "strength": 1},
             {"id": 3, "sansho": "圓成實", "strength": 3},
             {"id": 4, "sansho": "依他起", "strength": 2},
         ]
-        self.assertEqual(lm.rendered_first_circle(seeds, 0, limit=3), [3, 2, 1])
-        self.assertEqual(lm.rendered_first_circle(seeds, 1, limit=3), [3, 2])
-        self.assertEqual(lm.rendered_first_circle(seeds, 0, limit=10), [3, 2, 1, 4])
+        self.assertEqual(lm.rendered_first_circle(seeds, 0, limit=3), [2, 3, 1])
+        self.assertEqual(lm.rendered_first_circle(seeds, 1, limit=3), [2, 3])
+        self.assertEqual(lm.rendered_first_circle(seeds, 0, limit=10), [2, 3, 1, 4])
         self.assertEqual(lm.rendered_first_circle(seeds, 9, limit=3), [])
+
+    def test_rendered_first_circle_keeps_given_order_within_class(self):
+        self.assertEqual(lm.rendered_first_circle(
+            [{"id": 2, "sansho": "圓成實", "strength": 1}, {"id": 1, "sansho": "圓成實", "strength": 3}], 0, limit=5), [2, 1])
+        self.assertEqual(lm.rendered_first_circle(
+            [{"id": 5, "sansho": "依他起", "strength": 9}, {"id": 6, "sansho": "圓成實", "strength": 1}], 0, limit=5), [6, 5])
 
 
 class TestFailClosed(_Base):
