@@ -54,6 +54,7 @@ imprint_log (熏習の決定を1提案=1行で記帳する追記専用ログ。�
 移行ロジックは持たない)。`AlayaStore(path, imprint_log_path)` は両方必須。
 """
 import copy
+import functools
 import itertools
 import os
 import re
@@ -1324,14 +1325,45 @@ def _is_int(value):
     return isinstance(value, int) and not isinstance(value, bool)
 
 
-def _matched_conditions(seed, texts_n):
+_ASCII_WORD_CHARS = frozenset("0123456789abcdefghijklmnopqrstuvwxyz")
+SHORT_CONDITION_MAX_CHARS = 2  # この字数以下の縁は語末の境も要する (工学の定数。設計書 2026-11-25-recall-capacity §4.1 案 8d)
+
+
+@functools.lru_cache(maxsize=4096)
+def _word_pattern(key):
+    left = "(?<![0-9a-z])" if key[0] in _ASCII_WORD_CHARS else ""
+    right = "(?![0-9a-z])" if len(key) <= SHORT_CONDITION_MAX_CHARS and key[-1] in _ASCII_WORD_CHARS else ""
+    return re.compile(left + re.escape(key) + right)
+
+
+def _occurs_as_word(key, text_n):
+    """縁 `key` (`sansho._n(..).lower()` 済み) が本文 `text_n` に「現前」するか (純粋・案 8d)。部分一致のうえ、
+    key が ASCII 英数字で始まるなら当たる位置の直前が ASCII 英数字でないこと (語頭の境)、2 字以下で ASCII
+    英数字で終わるなら直後も ASCII 英数字でないこと (語末の境) を要する。記号・非 ASCII の字・本文の端は境。
+    3 字以上の前方一致 (git → github) は当たる (既知の限界)。言語は見ない (字の種類だけ)。"""
+    if not key or key not in text_n:
+        return False
+    return _word_pattern(key).search(text_n) is not None
+
+
+def _matched_conditions(seed, texts_n, memo=None):
     """発芽の縁の照合 (純粋)。`texts_n` は `sansho._n(..).lower()` 済みの本文の列。一致した縁の語を
-    重複も数えて返す (一致数の数え方は改修5 から不変)。"""
-    return [
-        cond
-        for cond in seed_conditions(seed)
-        if cond and any(sansho._n(cond).lower() in text_n for text_n in texts_n)
-    ]
+    重複も数えて返す (一致数の数え方は改修5 から不変)。照合は `_occurs_as_word` (語の途中は当たらない)。
+    `memo` (dict) を渡すと、同じ `texts_n` に対する縁ごとの結果を覚える (1 回の照合のパスの中だけ・
+    呼び側が作って捨てる。本文は保持しない)。種子が縁を共有するとき、本文の走査は異なる縁ごとに 1 回で済む。"""
+    out = []
+    for cond in seed_conditions(seed):
+        if not cond:
+            continue
+        if memo is None:
+            hit = any(_occurs_as_word(sansho._n(cond).lower(), t) for t in texts_n)
+        else:
+            hit = memo.get(cond)
+            if hit is None:
+                hit = memo[cond] = any(_occurs_as_word(sansho._n(cond).lower(), t) for t in texts_n)
+        if hit:
+            out.append(cond)
+    return out
 
 
 def _needed_conditions(kind):
@@ -1475,6 +1507,7 @@ class AlayaStore:
                 "germinate() の context_texts は文字列の列 (list/tuple) を取ります: str は渡せません"
             )
         texts_n = [sansho._n(t or "").lower() for t in [input_text] + list(context_texts or [])]
+        match_memo = {}
         candidates = []
         rejected = []
         if shadows is None:
@@ -1507,7 +1540,7 @@ class AlayaStore:
                 rejected.append((seed, False, GERMINATION_REASON_DORMANT.format(", ".join(absent)), []))
                 continue
             needed = _needed_conditions(kind)
-            matched = _matched_conditions(seed, texts_n)
+            matched = _matched_conditions(seed, texts_n, match_memo)
             if len(matched) >= needed:
                 candidates.append((seed, matched))
             else:
@@ -1834,8 +1867,9 @@ class AlayaStore:
         """
         texts_n = [sansho._n(t or "").lower() for t in (texts or [])]
         live = [s for s in self.state["seeds"] if is_live(s) and _project_matches(s, projects)]
+        match_memo = {}
         related = [
-            s for s in live if len(_matched_conditions(s, texts_n)) >= _needed_conditions(_seed_kind(s))
+            s for s in live if len(_matched_conditions(s, texts_n, match_memo)) >= _needed_conditions(_seed_kind(s))
         ]
         related.sort(key=_index_sort_key)
         groups, by_seed = _seed_groups_by_seed(live)
