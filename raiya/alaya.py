@@ -53,11 +53,13 @@ imprint_log (熏習の決定を1提案=1行で記帳する追記専用ログ。�
 分離**した (cosmicanalysis/Eight_Consciousness 版の波1〜2は同居していた。新規リポにつき
 移行ロジックは持たない)。`AlayaStore(path, imprint_log_path)` は両方必須。
 """
+import collections
 import copy
 import functools
 import itertools
 import os
 import re
+import typing
 import unicodedata
 
 from . import markers, sansho
@@ -723,6 +725,20 @@ _MID_TOKEN_FOLLOWERS = "=&_-/"   # 半角「?」の左が空白でない ASCII �
 
 
 _FULLWIDTH_TABLE = {0xFF1F: _FULLWIDTH_QUESTION}
+# `text.translate(_FULLWIDTH_TABLE)` に NFKC をかけたとき `?` か `_FULLWIDTH_QUESTION` を生む字の全部 (Unicode の全符号位置で確かめた 8 字。
+# 札の判定の近道だけが読む。tests/test_recall_long_input_cost.py が全符号位置と突き合わせる)。
+_QUESTION_SOURCE_CHARS = frozenset("?\u2047\u2048\u2049\ufdd0\ufe16\ufe56\uff1f")
+
+
+def _may_have_question(text):
+    """`text` が疑の文を持ちうるか (純粋)。`_QUESTION_SOURCE_CHARS` の字を 1 つも含まなければ `_sentence_pieces` に疑の文は無い。"""
+    return not _QUESTION_SOURCE_CHARS.isdisjoint(text)
+
+
+def _may_hold_conjecture(n_folded):
+    """`sansho._n(span).casefold()` が推量の印を含みうるか (純粋)。印 (casefold 済み) のどれも部分文字列でなければ、
+    文末が推量の印で終わる文は無い (`str.casefold` は字ごとの写像)。空の印があれば常に真 (`endswith("")` が真になるため)。"""
+    return any(m.casefold() in n_folded for m in CONJECTURE_MARKERS)
 
 
 def _is_ascii_alnum(c):
@@ -1065,19 +1081,21 @@ def doubt_judgement(seed, shown=()):
     - S = 問いのみでない縁: どれかの user span の残りに現れる縁 (どの span にも現れない縁は入れない)。
     - `keep_summary` = D があり、かつ S のうち **描く逐語 `shown`** (user の evidence の list。manas が描く最新の接地往復の
       span) の残りに現れない縁が 1 語以上ある。要約を外すと断定の部分が行から消えるときだけ True (§7 追補)。
-      `shown` は同じ `seed["evidences"]` の項目 (同一の object) で渡す。"""
+      `shown` は同じ `seed["evidences"]` の項目 (同一の object) で渡す。
+    近道: どの user span にも疑の字 (`_QUESTION_SOURCE_CHARS`) が無ければ文に切らず `([], False)` を返す (値は同じ。全文の規律は保つ)。"""
     if not isinstance(seed, dict) or seed_kind(seed) != "決定" or not has_user_span(seed):
         return [], False
     conditions = seed.get("conditions")
     if not isinstance(conditions, (list, tuple)):
         return [], False
+    user_evidences = [e for e in seed.get("evidences") or [] if has_user_span({"evidences": [e]})]
+    if not any(_may_have_question(e["span"]) for e in user_evidences):
+        return [], False   # 全 user span に疑の字が 1 つも無い = 疑の文が無い (近道。1 本でも在れば下で全 span を切る)
     shown_ids = {id(e) for e in shown or ()}
     questions = []       # 各 user span の疑の文 (正規化済み・casefold。文は "\n" でつなぐ = 縁が文を跨いで一致しない)
     remainders = []      # 各 user span の疑の文を除いた残り (casefold)
     shown_remainders = []
-    for evidence in seed.get("evidences") or []:
-        if not has_user_span({"evidences": [evidence]}):
-            continue
+    for evidence in user_evidences:
         n, pieces = _sentence_pieces(evidence["span"])
         questions.append("\n".join(n[lo:hi] for lo, hi, question in pieces if question).casefold())
         remainder = _remainder_from_offset(n, n, pieces, 0).casefold()
@@ -1106,7 +1124,8 @@ def conjecture_only(seed, shown=()):
     """#121 A' (spec 2026-11-07-tentative-preference-design §7): 決定 の描く逐語 `shown` (user の evidence の列) が推量だけか。
     読み時の派生・純関数 (ledger を読まない・何も書かない)。各 span を `_sentence_pieces` で文に切り、疑の文を除く。
     (a) 文末 (末尾の 。.!！」 と空白を外して casefold) が推量の印で終わる文が 1 つ以上あり、
-    (b) 縁 (`sansho._n` + casefold) を含み推量の印で終わらない文が 1 つも無いとき真。kind が 決定 以外は False。"""
+    (b) 縁 (`sansho._n` + casefold) を含み推量の印で終わらない文が 1 つも無いとき真。kind が 決定 以外は False。
+    近道: 推量の印がどの逐語の `sansho._n(..).casefold()` にも部分文字列として無ければ、文に切らず False (値は同じ)。"""
     if not isinstance(seed, dict) or seed_kind(seed) != "決定":
         return False
     conditions = seed.get("conditions")
@@ -1117,10 +1136,11 @@ def conjecture_only(seed, shown=()):
                 f = sansho._n(c).casefold()
                 if f.strip():
                     folded.append(f)
+    spans = [e for e in shown or () if isinstance(e, dict) and isinstance(e.get("span"), str)]
+    if not any(_may_hold_conjecture(sansho._n(e["span"]).casefold()) for e in spans):
+        return False   # 推量の印がどの逐語にも無い (近道。在れば下で全文を切る)
     conjectured = False
-    for evidence in shown or ():
-        if not isinstance(evidence, dict) or not isinstance(evidence.get("span"), str):
-            continue
+    for evidence in spans:
         n, pieces = _sentence_pieces(evidence["span"])
         for lo, hi, question in pieces:
             if question:
@@ -1264,20 +1284,60 @@ def _run_groups(text):
 
 
 _RUN_INNER_SEPARATORS = "_-./"   # ASCII の組 (`_RUN_FIND` の `[0-9a-z_\-./]`) のうち ASCII 英数字でない字 (= 片の中の語頭の境)
-_SCAN_CHARS_PER_OP = 64   # 片を `in` で走査する費用の単位 (64 字 = Python の 1 手)。語頭から引く枝との比較にだけ使う
+_SCAN_CHARS_PER_OP = 256   # 片を `in` で走査する費用の単位 (256 字 = Python の 1 手。実測 289〜540 字)。語頭から引く枝との比較にだけ使う
 _RUN_SEP_CLASS = "[" + re.escape(_RUN_INNER_SEPARATORS) + "]"   # `_RUN_INNER_SEPARATORS` から作る (片方だけ変えてずれないように)
 _RUN_SEP_RE = re.compile(_RUN_SEP_CLASS)
 _RUN_SEP_SPLIT = re.compile(_RUN_SEP_CLASS + "+")
 
 
-def _split_ascii_runs(runs):
-    """`runs` のうち ASCII の連なりを、区切り (`_RUN_INNER_SEPARATORS`) を含まないもの / 内に含むものの list に分け、
-    含まないものの先頭の字の集合を添えて返す (純粋)。"""
-    plain, sep = [], []
+_ASCII_WORD_RUN = re.compile(r"[0-9a-z]+")   # 片の中の英数字の語 (位置つき)
+
+
+class _RunIndex(typing.NamedTuple):
+    """入力の連なり (`_input_runs`) の索引 (1 回の想起の中だけの局所の値・保存しない、不変条件 4)。鍵は片から部分文字列を引くための
+    必要条件で、当たりかどうかは最後に `runs` の集合か今と同じ走査で決める (設計書 2026-11-25-long-input-recall-cost §4.1)。"""
+    runs: frozenset
+    lengths: tuple         # 連なりの長さの異なり (昇順)
+    plain: frozenset       # 区切りを含まない ASCII の連なり
+    plain_lengths: dict    # 先頭 3 字 -> 長さの昇順
+    sep: frozenset         # 区切り入りの ASCII の連なり
+    sep_lengths: dict      # 最初の語 -> 長さの昇順
+    wide: frozenset        # 非 ASCII の連なり
+    wide_lengths: dict     # 先頭 2 字 -> 長さの昇順
+
+
+def _run_index(runs):
+    """`runs` (`_input_runs` の集合) から `_RunIndex` を作る (純粋)。
+    前提: `runs` は `_input_runs` の出力であること (ASCII の連なりは 3 字以上で最初の字が ASCII 英数字、数字だけでない・
+    非 ASCII の連なりは 2 字以上)。鍵 (区切りなしは先頭 3 字、区切り入りは最初の語 (先頭が ASCII 英数字であることが前提)、
+    非 ASCII は先頭 2 字) はこの前提で切るので、手で作った `runs` を渡すと、`_index_relevance` の値が素朴な定義
+    (連なりごとに、ASCII なら `_ascii_run_at_word_start`、非 ASCII なら部分文字列として、span の片へ当てる = `_index_relevance` の
+    現前の規則) と分かれうる。例: 2 字の `ab` は、鍵が先頭 3 字なので片 `abc` の鍵 `abc` に当たらず分かれる (長さの前提)。
+    `/` から始まる `/ab/cd` は、最初の語が空文字列 `""` になり、片の語 (英数字の並び) の鍵に空文字列は決して無いので当たらず分かれる
+    (先頭の前提)。実行時には検査しない (呼び手は `_input_runs` を渡す)。"""
+    plain, sep, wide = set(), set(), set()
+    plain_lengths, sep_lengths, wide_lengths = {}, {}, {}
     for r in runs:
-        if ord(r[0]) < 128:
-            (sep if _RUN_SEP_RE.search(r) else plain).append(r)
-    return plain, sep, {r[0] for r in plain}
+        if ord(r[0]) >= 128:
+            wide.add(r)
+            wide_lengths.setdefault(r[:2], set()).add(len(r))
+            continue
+        if _RUN_SEP_RE.search(r):
+            sep.add(r)
+            sep_lengths.setdefault(_RUN_SEP_SPLIT.split(r, 1)[0], set()).add(len(r))
+        else:
+            plain.add(r)
+            plain_lengths.setdefault(r[:3], set()).add(len(r))
+    return _RunIndex(
+        runs=frozenset(runs),
+        lengths=tuple(sorted({len(r) for r in runs})),
+        plain=frozenset(plain),
+        plain_lengths={k: tuple(sorted(v)) for k, v in plain_lengths.items()},
+        sep=frozenset(sep),
+        sep_lengths={k: tuple(sorted(v)) for k, v in sep_lengths.items()},
+        wide=frozenset(wide),
+        wide_lengths={k: tuple(sorted(v)) for k, v in wide_lengths.items()},
+    )
 
 
 def _ascii_run_at_word_start(run, piece):
@@ -1313,85 +1373,87 @@ def _is_user_span_evidence(evidence):
     )
 
 
-def _index_relevance(seed, runs, lengths=None):
+def _index_relevance(seed, runs, lengths=None, index=None):
     """索引の「今の入力との関わり」(純粋・大きいほど関わる)。`runs` (= `_input_runs`) のうち、種子の user の span
     (`_is_user_span_evidence`、`sansho._n(..).lower()`) のどれかに「現前」するものの字数の和 (同じ連なりは 1 回)。現前 =
     非 ASCII の連なりは部分文字列として在ること、ASCII の連なりは span の片の語頭 (片の先頭か `-./_` の直後) に在ること
     (8d・T2。`_occurs_as_word` と同じ規則で、右は見ない)。assistant の span・content・縁は読まない。`runs` が空なら 0。
-    計算量: 入力の字数そのものには比例しないが、入力の連なりの数 (`runs`) に比例する項 (種子ごとの連なりの分け、区切りを含む片ごとの
-    残りの一覧) と、span の片の字数に比例する項 (異なり語 × 長さの数、片の走査) がある。span を入力と同じ切り方で組に分け、非 ASCII の組は
-    各部分文字列 (長さは `runs` に在る長さだけ) を `runs` の集合で引く。ASCII の組は、区切りで割った異なり語の先頭部分を `runs` の集合で引き (区切りを含まない連なり)、
-    区切りを内に含む連なりだけ、語頭の位置から引くか残りの連なりごとに片を調べるかの安い方 (費用は片の長さ込みで比べる)
-    (`lengths` = 長さの昇順、省略時は計算)。"""
+    `index` は呼び手が 1 回の想起で 1 度だけ `_run_index(runs)` で作って渡す (`runs` は `_input_runs` の出力であること。`_run_index` の前提)。
+    None なら呼び出しごとに作り直す (遅い。種子の数だけ索引を作るので、直接呼びやテスト向け)。
+    計算量: 入力の連なりは 1 回の想起で 1 度だけ `_RunIndex` にし (`index`、None なら `runs` から作る。`lengths` は互換のため受けるが読まない)、
+    span を入力と同じ切り方で組に分けて、ASCII の片は語の鍵 (区切りを含まない連なりは語の先頭 3 字、区切り入りの連なりは最初の語) ごとの
+    長さで引くか、費用の安いときだけ連なりごとに片を走査する (費用は片の長さ込みで比べる)。非 ASCII の片は先頭 2 字の鍵ごとの長さで引くか、費用の安いときだけ
+    連なりごとに片を走査する。"""
     if not runs:
         return 0
     evidences = seed.get("evidences")
     if not isinstance(evidences, (list, tuple)):
         return 0
-    if lengths is None:
-        lengths = sorted({len(r) for r in runs})
+    if index is None:
+        index = _run_index(runs)
+    lengths = index.lengths
     hit = set()
-    plain_runs = sep_runs = first_chars = None   # 区切りを含まない / 内に含む ASCII の連なりの一覧 (必要になったとき 1 回だけ作る)
     for e in evidences:
         if not _is_user_span_evidence(e):
             continue
         for piece in _run_groups(e["span"]):
             n = len(piece)
-            sizes = [size for size in lengths if size <= n]
-            pending = len(runs) - len(hit)   # hit ⊆ runs。数だけ比べる (片ごとに runs を舐めると入力の長さに比例する)
-            if not pending or not sizes:
+            if not lengths or lengths[0] > n or len(hit) >= len(runs):
                 continue
             if ord(piece[0]) < 128:
+                scan_unit = 4 * (1 + n // _SCAN_CHARS_PER_OP)   # 連なり 1 本ぶん (`_ascii_run_at_word_start` は片を 4 回走査する)
                 has_sep = _RUN_SEP_RE.search(piece) is not None
-                # 区切りを含まない連なり = 片の「語」(区切りで割った異なり語) の先頭部分。語の数 × 長さの数で引くか、
-                # 残りの連なりごとに片を調べるかの安い方 (費用は片の長さ込みで、下の (2) と同じ単位で比べる)
-                toks = set(_RUN_SEP_SPLIT.split(piece)) if has_sep else (piece,)
-                scan_cost = 4 * (1 + n // _SCAN_CHARS_PER_OP)   # 連なり 1 本ぶん (`_ascii_run_at_word_start` は片を 4 回走査する)
-                by_tokens = len(toks) * len(sizes)
-                by_runs = False
-                if by_tokens > pending:   # 連なりの数より多い見込みのときだけ、一覧を作って数え直す
-                    if plain_runs is None:
-                        plain_runs, sep_runs, first_chars = _split_ascii_runs(runs)
-                    toks = [t for t in toks if t[:1] in first_chars]   # 先頭の字が違う語は、どの連なりの先頭部分でもない
-                    by_tokens = len(toks) * len(sizes)
-                    rest_plain = [r for r in plain_runs if r not in hit]
-                    by_runs = len(rest_plain) * scan_cost <= by_tokens
-                if by_runs:
-                    hit.update([r for r in rest_plain if _ascii_run_at_word_start(r, piece)])
-                else:
-                    for tok in toks:
-                        for size in sizes:
-                            if size > len(tok):
-                                break
-                            sub = tok[:size]
-                            if sub in runs:
-                                hit.add(sub)
-                if not has_sep:
+                parts = _RUN_SEP_SPLIT.split(piece) if has_sep else [piece]
+                toks = set(parts)
+                # 区切りを含まない連なり = 片の語の先頭部分。語ごとに鍵 (先頭 3 字) の長さで引くか、連なりごとに片を調べるかの安い方
+                if index.plain:
+                    if len(index.plain) * scan_unit <= len(toks):
+                        hit.update([r for r in index.plain if r not in hit and _ascii_run_at_word_start(r, piece)])
+                    else:
+                        for tok in toks:
+                            for size in index.plain_lengths.get(tok[:3], ()):
+                                if size > len(tok):
+                                    break
+                                sub = tok[:size]
+                                if sub in index.plain:
+                                    hit.add(sub)
+                if not has_sep or not index.sep:
                     continue
-                # 区切りを内に含む連なり (src/app など)。語頭の位置から引くか、残りの連なりごとに片全体を調べるかの安い方。
-                # 後者の費用 = 残りの数 × 区切りの種類 (4) × (1 + 片の長さ / _SCAN_CHARS_PER_OP) (`_ascii_run_at_word_start` が
-                # 片を 4 回走査する。`in` の 1 字の走査は Python の 1 手より約 2 桁安いので 64 字を 1 手に数える。実測で決めた定数)
-                if sep_runs is None:
-                    plain_runs, sep_runs, first_chars = _split_ascii_runs(runs)
-                rest = [r for r in sep_runs if r not in hit]
-                if not rest:
+                # 区切りを内に含む連なり (src/app など): 最初の語が片の語に在るものだけが当たりうる。
+                # 語頭の位置から引くか、連なりごとに片全体を調べるかの安い方
+                keys = toks.intersection(index.sep_lengths)
+                if not keys:
                     continue
-                n_starts = 1 + sum(piece.count(ch) for ch in _RUN_INNER_SEPARATORS)
-                if len(rest) * scan_cost <= n_starts * len(sizes):
-                    hit.update([r for r in rest if _ascii_run_at_word_start(r, piece)])
+                counts = collections.Counter(parts)
+                enum_cost = sum(counts[k] * len(index.sep_lengths[k]) for k in keys)
+                if len(index.sep) * scan_unit <= enum_cost:
+                    hit.update([r for r in index.sep if r not in hit and _ascii_run_at_word_start(r, piece)])
                     continue
-                starts = [0] + [i + 1 for i, ch in enumerate(piece) if ch in _RUN_INNER_SEPARATORS]
-                wanted = set(rest)
-                for size in sizes:
-                    hit.update(wanted.intersection([piece[i:i + size] for i in starts if i + size <= n]))
+                for m in _ASCII_WORD_RUN.finditer(piece):
+                    key = m.group()
+                    if key not in keys:
+                        continue
+                    i = m.start()
+                    for size in index.sep_lengths[key]:
+                        if i + size > n:
+                            break
+                        sub = piece[i:i + size]
+                        if sub in index.sep:
+                            hit.add(sub)
                 continue
-            if pending <= sum(n - size + 1 for size in sizes):
-                hit.update([r for r in runs if r not in hit and r in piece])   # 連なりの数のほうが少ない: run in piece
+            # 非 ASCII の連なりは部分文字列として在れば当たる (先頭 2 字は連なりの先頭 2 字と等しい)。
+            # 位置ごとに鍵 (先頭 2 字) の長さで引くか、連なりごとに片を走査するかの安い方
+            if not index.wide:
                 continue
-            for size in sizes:
-                for i in range(n - size + 1):
+            if len(index.wide) * (1 + n // _SCAN_CHARS_PER_OP) <= n:
+                hit.update([r for r in index.wide if r not in hit and r in piece])
+                continue
+            for i in range(n - 1):
+                for size in index.wide_lengths.get(piece[i:i + 2], ()):
+                    if i + size > n:
+                        break
                     sub = piece[i:i + size]
-                    if sub in runs:
+                    if sub in index.wide:
                         hit.add(sub)
     return sum(len(r) for r in hit)
 
@@ -1834,14 +1896,14 @@ class AlayaStore:
                 candidates.append((rep, gi))
         runs = _input_runs(input_text)
         if runs:
-            lengths = sorted({len(r) for r in runs})   # 1 回だけ作る
+            index = _run_index(runs)   # 1 回だけ作る (この呼び出しの中だけの局所の値。保存しない)
             relevance = {}   # この呼び出しの中だけ (id(seed) → 関わり。保存しない): 並べ替えと over の並べ直しで使い回す
 
             def order_key(pair):
                 seed = pair[0]
                 rel = relevance.get(id(seed))
                 if rel is None:
-                    rel = relevance[id(seed)] = _index_relevance(seed, runs, lengths)
+                    rel = relevance[id(seed)] = _index_relevance(seed, runs, index=index)
                 return (_kind_rank(_seed_kind(seed)), -rel) + sansho.sansho_sort_key(seed)
         else:
             def order_key(pair):
