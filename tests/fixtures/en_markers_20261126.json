@@ -1,0 +1,174 @@
+{
+  "_note": "spec 2026-11-26-en-marker-table-design §5。文は作文 (LongMemEval の文は写さない・裁定 12)。役ごとに hit / miss / known_hits。",
+  "preference_suffix": {
+    "miss": [
+      "I'd like FastAPI for the API layer.",
+      "I want to make sure the filter fits the car.",
+      "I'd like to see the log first.",
+      "The wiki preferences page is broken.",
+      "Please use TOML.",
+      "Do you prefer TOML?"
+    ],
+    "hit": [
+      "I prefer TOML for config files.",
+      "I'd prefer pytest over unittest here.",
+      "I would prefer tabs.",
+      "I'd rather keep the CLI small.",
+      "I want you to run the tests before committing.",
+      "I’d like you to keep the diff small.",
+      "I would like you to use ruff."
+    ],
+    "known_hits": [
+      "I'd rather you asked first."
+    ]
+  },
+  "decision_assert_in_sentence": {
+    "hit": [
+      "We'll go with PostgreSQL.",
+      "We decided to use SQLite for the cache.",
+      "I decided on Ruff for linting.",
+      "Let's go with Fly.io for deploys.",
+      "We went with SQLite.",
+      "We’re going with JWT for auth.",
+      "Let's use pytest.",
+      "We settled on structlog.",
+      "We chose Celery for jobs.",
+      "- We'll go with PostgreSQL."
+    ],
+    "miss": [
+      "I went with my team to the meetup.",
+      "Should we go with PostgreSQL?",
+      "We'll go with PostgreSQL?",
+      "Let's user-test it first.",
+      "We used to go with MySQL.",
+      "Did you decide to use SQLite?",
+      "We decided not to use Redis."
+    ],
+    "known_hits": [
+      "I decided to take a break.",
+      "I think I'll go with the grilled chicken.",
+      "I wonder if we'll go with Redis."
+    ]
+  },
+  "hearsay": {
+    "hit": [
+      "You mentioned that the next step is the retry module.",
+      "As you mentioned, we resume from the retry module.",
+      "You told me that we resume at the retry module.",
+      "You said you would start with the retry module next.",
+      "You were planning to resume with the retry module.",
+      "The user said the next step is the retry module.",
+      "You asked me to start from the retry module next time."
+    ],
+    "miss": [
+      "Next, I'll resume the retry module.",
+      "I'll mention that in the summary."
+    ],
+    "miss_from_fixture": "hearsay_markers_20261104.json (英文の miss は読み込んで当てる)",
+    "known_hits": [
+      "You mentioned that earlier, and I fixed it. Next: QA."
+    ]
+  },
+  "self_stated_cause": {
+    "hit": [
+      "The cause is a stale cache.",
+      "The root cause was the TZ setting.",
+      "It was caused by the proxy.",
+      "The flaky test is caused by the UTC offset."
+    ],
+    "miss": [
+      "Because of the proxy, pip fails.",
+      "Due to the proxy, pip fails.",
+      "We need to find the cause."
+    ],
+    "known_hits": [
+      "The cause is unknown."
+    ]
+  },
+  "workaround_avoid": {
+    "hit": [
+      "Setting TZ=UTC works around it.",
+      "Pinning the version avoided the issue.",
+      "Clearing the cache gets around it.",
+      "Running it twice worked around it."
+    ],
+    "miss": [
+      "Does setting TZ=UTC work around it?",
+      "It works around it sometimes, but not always.",
+      "That fixed it.",
+      "Avoids it?"
+    ],
+    "known_hits": [
+      "Nothing works around it."
+    ]
+  },
+  "w1_forms": [
+    {
+      "text": "The flaky test is caused by the UTC offset. Setting TZ=UTC works around it.",
+      "conditions": [
+        "TZ"
+      ],
+      "kind": "回避策"
+    },
+    {
+      "text": "Is the cause the UTC offset? Does TZ=UTC work around it?",
+      "conditions": [
+        "UTC"
+      ],
+      "kind": "性向"
+    },
+    {
+      "text": "The cause is unknown. Restarting works around it.",
+      "conditions": [
+        "Restarting"
+      ],
+      "kind": "回避策",
+      "known": true
+    }
+  ],
+  "conjecture_in_sentence": {
+    "_note": "項は [本文, 縁]。conjecture_only に 決定 の種子として渡す",
+    "hit": [
+      [
+        "Maybe PostgreSQL for the DB.",
+        "PostgreSQL"
+      ],
+      [
+        "PostgreSQL is probably better for the DB.",
+        "PostgreSQL"
+      ],
+      [
+        "Perhaps Redis for the cache.",
+        "Redis"
+      ]
+    ],
+    "miss": [
+      [
+        "We use PostgreSQL. Maybe Redis later.",
+        "PostgreSQL"
+      ],
+      [
+        "Maybelline is not a database; use PostgreSQL.",
+        "PostgreSQL"
+      ],
+      [
+        "Maybe PostgreSQL?",
+        "PostgreSQL"
+      ]
+    ]
+  },
+  "decision_reject": {
+    "hit": [
+      "Use TOML instead of YAML.",
+      "SQLite rather than Postgres for tests.",
+      "We decided against Docker.",
+      "Redis is ruled out."
+    ],
+    "miss": [
+      "Do not use YAML.",
+      "I never use tabs.",
+      "No YAML.",
+      "The PR got rejected by the linter."
+    ]
+  }
+}

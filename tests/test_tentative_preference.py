@@ -43,6 +43,10 @@ class TestConjectureOnly(unittest.TestCase):
                          ("かも", "かもしれない", "かもしれません", "かもね", "かもな"))
         self.assertEqual(markers.MARKERS["en"]["conjecture"], ())
         self.assertEqual(alaya.CONJECTURE_MARKERS, markers.union("conjecture"))
+        # R3b (2026-11-26): 英語の推量の印は文中一致の対の役 (文末一致の conjecture の en は () のまま)
+        self.assertEqual(markers.MARKERS["ja"]["conjecture_in_sentence"], ())
+        self.assertEqual(markers.MARKERS["en"]["conjecture_in_sentence"], ("maybe", "perhaps", "probably"))
+        self.assertEqual(alaya.CONJECTURE_IN_SENTENCE_MARKERS, markers.union("conjecture_in_sentence"))
 
     def test_n1_is_conjecture_in_both_circles(self):
         s = _seed(["DB は PostgreSQL がいいかも"])
@@ -194,8 +198,11 @@ class TestQaAdditions(unittest.TestCase):
             s = _seed([text])
             self.assertEqual(alaya.conjecture_only(s, _shown(s)), want, repr(text))
 
-    def test_english_decision_is_false(self):
+    def test_english_maybe_is_conjecture(self):
+        # 推量の印 `maybe` (conjecture_in_sentence・2026-11-26) が文中で当たる。`might` は印にしない
         s = _seed(["Maybe PostgreSQL might be better"])
+        self.assertTrue(alaya.conjecture_only(s, _shown(s)))
+        s = _seed(["PostgreSQL might be better"])
         self.assertFalse(alaya.conjecture_only(s, _shown(s)))
 
 

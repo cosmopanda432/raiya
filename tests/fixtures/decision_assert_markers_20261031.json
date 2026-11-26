@@ -8,7 +8,8 @@
     "ORM は SQLAlchemy を採用した。",
     "テストは pytest を採用する！",
     "ビルドは後回しにした。",
-    "DB は SQLite にしました。"
+    "DB は SQLite にしました。",
+    "We went with SQLite."
   ],
   "miss": [
     "DB は SQLite にしたほうがいい。",
@@ -22,7 +23,6 @@
     "DB は SQLite にしましたか？",
     "SQLite を採用するかは未定",
     "Redis を採用するか迷っている。",
-    "We went with SQLite.",
     "SQLite の性能を気にした。",
     "SQLite のエラーを目にした。",
     "その話を耳にした。",

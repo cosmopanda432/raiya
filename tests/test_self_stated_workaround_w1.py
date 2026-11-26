@@ -57,7 +57,11 @@ class TestTable(unittest.TestCase):
     def test_tables(self):
         self.assertIn("workaround_avoid", markers.ROLES)
         self.assertEqual(alaya_mod.WORKAROUND_AVOID_MARKERS, markers.union("workaround_avoid"))
-        self.assertEqual(markers.MARKERS["en"]["workaround_avoid"], ())
+        self.assertEqual(
+            markers.MARKERS["en"]["workaround_avoid"],
+            ("works around it", "worked around it", "avoids it", "avoided it", "avoids the issue", "avoided the issue",
+             "avoids the problem", "avoided the problem", "gets around it", "got around it"),
+        )
         for w in ("回避できる", "解消しました", "解消します", "直りました", "通りました", "動きました"):
             self.assertNotIn(w, markers.MARKERS["ja"]["workaround_avoid"])
 
@@ -237,8 +241,9 @@ class TestNarrowing(unittest.TestCase):
 
     def test_roles(self):
         self.assertIn("self_stated_cause", markers.ROLES)
-        self.assertEqual(alaya_mod.SELF_STATED_CAUSE_MARKERS, ("原因",))
-        self.assertEqual(markers.MARKERS["en"]["self_stated_cause"], ())
+        en_cause = ("the cause is", "the cause was", "the root cause", "was caused by", "is caused by")
+        self.assertEqual(alaya_mod.SELF_STATED_CAUSE_MARKERS, ("原因",) + en_cause)
+        self.assertEqual(markers.MARKERS["en"]["self_stated_cause"], en_cause)
 
     def test_rule_misses_stay_disposition(self):
         for t in self.fx["self_stated_rule_miss"]:

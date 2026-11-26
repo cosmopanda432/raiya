@@ -40,8 +40,13 @@ class TestTables(unittest.TestCase):
             for role in ROLES:
                 self.assertIsInstance(MARKERS[lang][role], tuple)
 
-    def test_en_preference_suffix_is_empty(self):
-        self.assertEqual(MARKERS["en"]["preference_suffix"], ())
+    def test_en_preference_suffix_table(self):
+        # spec 2026-11-26-en-marker-table-design §5.1 (P1): ja の「を好む」「てほしい」に当たる 8 形だけ。i want to / i'd like / please は入れない
+        self.assertEqual(
+            MARKERS["en"]["preference_suffix"],
+            ("i prefer", "i'd prefer", "i would prefer", "i'd rather", "i would rather",
+             "i want you to", "i'd like you to", "i would like you to"),
+        )
 
     def test_en_decision_reject_excludes_bare_negation(self):
         for w in ("not", "no", "don't", "never", "avoid", "over", "vs"):
@@ -65,7 +70,8 @@ class TestUnion(unittest.TestCase):
             markers.union("decision_reject"),
             MARKERS["ja"]["decision_reject"] + MARKERS["en"]["decision_reject"],
         )
-        self.assertEqual(len(markers.union("decision_reject")), 10)
+        self.assertEqual(len(markers.union("decision_reject")), 9)   # ja 5 + en 4 (rejected は 2026-11-26 に外した)
+        self.assertNotIn("rejected", markers.MARKERS["en"]["decision_reject"])
 
     def test_union_dedups_shared_marker(self):
         self.assertEqual(
@@ -130,6 +136,8 @@ class TestCrossLanguage(unittest.TestCase):
                 ("hearsay", alaya.HEARSAY_MARKERS, alaya._has_marker),
                 ("workaround_avoid", alaya.WORKAROUND_AVOID_MARKERS, alaya._has_marker),
                 ("self_stated_cause", alaya.SELF_STATED_CAUSE_MARKERS, alaya._has_marker),
+                ("decision_assert_in_sentence", alaya.DECISION_ASSERT_IN_SENTENCE_MARKERS, alaya._has_marker),
+                ("conjecture_in_sentence", alaya.CONJECTURE_IN_SENTENCE_MARKERS, alaya._has_marker),
             ):
                 union_hit = fn(text, const)
                 ja_hit = fn(text, MARKERS["ja"][role])
@@ -173,6 +181,17 @@ class TestDecisionAssertFixture(unittest.TestCase):
         )
         self.assertEqual(MARKERS["en"]["decision_assert"], ())
         self.assertEqual(alaya.DECISION_ASSERT_MARKERS, markers.union("decision_assert"))
+        # R3b (2026-11-26): 文中一致の対の役。ja は空 (en は T4 で埋める)
+        self.assertEqual(MARKERS["ja"]["decision_assert_in_sentence"], ())
+        self.assertEqual(
+            MARKERS["en"]["decision_assert_in_sentence"],
+            ("we decided to", "i decided to", "we've decided to", "i've decided to", "we decided on", "i decided on",
+             "we'll go with", "i'll go with", "we're going with", "i'm going with", "let's go with", "we went with",
+             "we chose", "we settled on", "i settled on", "let's use"),
+        )
+        self.assertEqual(MARKERS["ja"]["conjecture_in_sentence"], ())
+        self.assertEqual(alaya.DECISION_ASSERT_IN_SENTENCE_MARKERS, markers.union("decision_assert_in_sentence"))
+        self.assertEqual(alaya.CONJECTURE_IN_SENTENCE_MARKERS, markers.union("conjecture_in_sentence"))
 
     def test_every_hit_has_a_sentence_final_marker(self):
         self.assertTrue(self.fixture["hit"])

@@ -45,7 +45,11 @@ class TestHearsayTable(unittest.TestCase):
     def test_tables(self):
         self.assertIn("hearsay", markers.ROLES)
         self.assertEqual(alaya_mod.HEARSAY_MARKERS, markers.union("hearsay"))
-        self.assertEqual(markers.MARKERS["en"]["hearsay"], ())
+        self.assertEqual(
+            markers.MARKERS["en"]["hearsay"],
+            ("you mentioned that", "you told me that", "as you mentioned", "as you said", "you said you", "you've mentioned",
+                          "you had mentioned", "you were planning to", "the user said", "the user mentioned", "you asked me to"),
+        )
         for w in ("伝え", "記録", "伝えました", "記録しました"):
             self.assertNotIn(w, markers.MARKERS["ja"]["hearsay"])
 

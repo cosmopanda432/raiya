@@ -95,6 +95,8 @@ SELF_STATED_CAUSE_MARKERS = markers.union("self_stated_cause")   # 自述の入�
 HEARSAY_MARKERS = markers.union("hearsay")   # 再開点 の伝聞の言 (RH2・#129)
 CONJECTURE_MARKERS = markers.union("conjecture")   # 決定 の描画で「決定(推量)」にする推量の印 (文末一致・描画のみ・#121 A')
 DECISION_ASSERT_MARKERS = markers.union("decision_assert")   # 性向 の申告を 決定 へ上げる断定の印 (文末一致・#117)
+DECISION_ASSERT_IN_SENTENCE_MARKERS = markers.union("decision_assert_in_sentence")   # 同・問いでない文の中のどこかに在れば立つ対の役 (R3b・2026-11-26)
+CONJECTURE_IN_SENTENCE_MARKERS = markers.union("conjecture_in_sentence")   # 推量の印の文中一致の対の役 (R3b・描画のみ)
 # 注入索引の kind 別上限 (spec §6.3)。合計 30 = INDEX_MAX。再開点は索引に入れずセッション先頭で
 # 1 件だけ出す (`resume_point`)。性向は既定で注入しない (§7・§11.2)。
 INDEX_KIND_LIMITS = {"決定": 10, "回避策": 10, "所在": 10, "再開点": 0, "性向": 0}
@@ -411,15 +413,42 @@ _is_superseded = is_superseded
 _project_matches = project_matches
 
 
+def _marker_fold(text):
+    """印の照合のための畳み (比べるときだけ・保存も `sansho._n` も変えない。spec 2026-11-26-en-marker-table-design §4.2 R1a):
+    casefold のあと、U+2018・U+2019 を `'` に替える。ほかの引用符は畳まない (§9 の 7)。"""
+    return (text or "").casefold().replace("‘", "'").replace("’", "'")
+
+
+def _marker_left_ok(folded, m, i):
+    """R2b: 印 m (畳み済み) の最初の字が ASCII 英数字なら、位置 i の直前が ASCII 英数字でないこと。記号・非 ASCII・本文の端は境。"""
+    return not (i > 0 and m and m[0] in _ASCII_WORD_CHARS and folded[i - 1] in _ASCII_WORD_CHARS)
+
+
 def _has_marker(text, marker_list):
-    """text に marker_list のどれかが含まれるか。両側を casefold して比べる (比較のためだけ)。"""
-    folded = (text or "").casefold()
-    return any(m.casefold() in folded for m in marker_list)
+    """text に marker_list のどれかが含まれるか。両側を `_marker_fold` して比べる (比較のためだけ)。
+    印の最初・最後の字が ASCII 英数字なら、その側に語の境を要する (R2b)。ja の印は端が ASCII 英数字でないので部分一致のまま。"""
+    folded = _marker_fold(text)
+    for marker in marker_list:
+        m = _marker_fold(marker)
+        i = folded.find(m)
+        while i >= 0:
+            j = i + len(m)
+            if _marker_left_ok(folded, m, i) and not (
+                m and j < len(folded) and m[-1] in _ASCII_WORD_CHARS and folded[j] in _ASCII_WORD_CHARS
+            ):
+                return True
+            i = folded.find(m, i + 1)
+    return False
 
 
 def _ends_with_marker(text, marker_list):
-    folded = (text or "").casefold()
-    return any(folded.endswith(m.casefold()) for m in marker_list)
+    """text の末尾が marker_list のどれかで終わるか。`_has_marker` と同じ畳み。印の最初の字が ASCII 英数字なら左の境も要る (右は本文の端)。"""
+    folded = _marker_fold(text)
+    for marker in marker_list:
+        m = _marker_fold(marker)
+        if folded.endswith(m) and _marker_left_ok(folded, m, len(folded) - len(m)):
+            return True
+    return False
 
 
 def _has_preference_suffix(content):
@@ -654,8 +683,8 @@ def _has_avoid_final(remainder):
     for lo, hi, question in pieces:
         if question:
             continue
-        sentence = n[lo:hi].rstrip("。.!！」 ").casefold()
-        if any(sentence.endswith(m.casefold()) for m in WORKAROUND_AVOID_MARKERS):
+        sentence = n[lo:hi].rstrip("。.!！」 ")
+        if _ends_with_marker(sentence, WORKAROUND_AVOID_MARKERS):
             return True
     return False
 
@@ -736,9 +765,14 @@ def _may_have_question(text):
 
 
 def _may_hold_conjecture(n_folded):
-    """`sansho._n(span).casefold()` が推量の印を含みうるか (純粋)。印 (casefold 済み) のどれも部分文字列でなければ、
-    文末が推量の印で終わる文は無い (`str.casefold` は字ごとの写像)。空の印があれば常に真 (`endswith("")` が真になるため)。"""
-    return any(m.casefold() in n_folded for m in CONJECTURE_MARKERS)
+    """`sansho._n(span).casefold()` が推量の印を含みうるか (純粋)。文末一致の印 (`CONJECTURE_MARKERS`) と文中一致の印
+    (`CONJECTURE_IN_SENTENCE_MARKERS`) の両方を見る。印 (casefold 済み) のどれも部分文字列でなければ、
+    文末が推量の印で終わる文も、文中に推量の印を持つ文も無い (`str.casefold` は字ごとの写像)。空の印があれば常に真 (`endswith("")` が真になるため)。"""
+    markers_ = CONJECTURE_MARKERS + CONJECTURE_IN_SENTENCE_MARKERS
+    if not markers_:
+        return False
+    n_folded = n_folded.replace("\u2018", "'").replace("\u2019", "'")   # `_marker_fold` と同じ畳み (casefold は済み)
+    return any(_marker_fold(m) in n_folded for m in markers_)
 
 
 def _is_ascii_alnum(c):
@@ -958,19 +992,22 @@ _FIXED_PHRASE_BEFORE_NISHITA = tuple("気目耳口手")
 
 def _has_decision_assert_final(remainder):
     """#117 (KP2b): remainder (疑の文を除いた残り) を文に切り、どれかの文末 (末尾の 。.!！」 と空白を外して casefold) が
-    `decision_assert` の印で終わるか。印は文末一致 (「にした」⊂「にしたほうがいい」「にしたら」を通さない)。問いの文は数えない。"""
+    `decision_assert` の印で終わるか。印は文末一致 (「にした」⊂「にしたほうがいい」「にしたら」を通さない)。問いの文は数えない。
+    R3b (2026-11-26): 問いでない文の中のどこかに `DECISION_ASSERT_IN_SENTENCE_MARKERS` の印 (語の境つき) が在っても真。"""
     n, pieces = _sentence_pieces(remainder)
     for lo, hi, question in pieces:
         if question:
             continue
-        sentence = n[lo:hi].rstrip("。.!！」 ").casefold()
+        sentence = _marker_fold(n[lo:hi].rstrip("。.!！」 "))
         for m in DECISION_ASSERT_MARKERS:
-            m = m.casefold()
-            if not sentence.endswith(m):
+            m = _marker_fold(m)
+            if not _ends_with_marker(sentence, (m,)):
                 continue
             # 慣用句 (気にした・目にした・耳にした・口にした・手にした、〜にしました も同じ) は決定でない
             if m in ("にした", "にしました") and sentence[-len(m) - 1:-len(m)] in _FIXED_PHRASE_BEFORE_NISHITA:
                 continue
+            return True
+        if _has_marker(sentence, DECISION_ASSERT_IN_SENTENCE_MARKERS):
             return True
     return False
 
@@ -1145,10 +1182,10 @@ def conjecture_only(seed, shown=()):
         for lo, hi, question in pieces:
             if question:
                 continue
-            sentence = n[lo:hi].rstrip("。.!！」 ").casefold()
-            if any(sentence.endswith(m.casefold()) for m in CONJECTURE_MARKERS):
+            sentence = n[lo:hi].rstrip("。.!！」 ")
+            if _ends_with_marker(sentence, CONJECTURE_MARKERS) or _has_marker(sentence, CONJECTURE_IN_SENTENCE_MARKERS):
                 conjectured = True
-            elif any(f in sentence for f in folded):
+            elif any(f in sentence.casefold() for f in folded):
                 return False
     return conjectured
 
