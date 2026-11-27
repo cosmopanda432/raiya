@@ -151,6 +151,8 @@ _D_NOTE = "user の逐語を持つ種子 #{} に assistant だけの提案が一
 _EC2_NOTE = "EC2': user の span が無いか (疑の文を除いた残りが) 形を担わず、assistant の span は注入済み #{} の復唱 (縁共有) のため記録のみ、強度は変えない"
 _EC2_TARGET_NOTE = "EC2': user の span が無いか (疑の文を除いた残りが) 形を担わず、assistant の span は注入済みの target_id #{} の復唱 (縁共有 1 語) のため記録のみ、強度は変えない"
 _SC_NOTE = "圓成實 の種子 #{} と同じ内容の 依他起 の提案: 記録のみ、別に植えない"
+_R_REQ_NOTE = "R': 注入済みの種子 #{} の値の縁 ({}) は assistant の span にだけ在り、user の span は値を言っていない: 記録のみ、強度は変えない"
+_R_REQ_NEW_NOTE = "R': 注入済みの種子 #{} の値の縁 ({}) を assistant の span だけが言う復唱: 記録のみ、別に植えない"
 _R_NOTE = "R: 同 session で注入済みの種子 #{} を assistant だけが言い直した提案: 記録のみ、強度は変えない"
 
 
@@ -1355,6 +1357,123 @@ def approval_only(seed):
     return assistant and users
 
 
+_ASCII_RUN = re.compile(r"[0-9a-z]+")
+
+
+def _ascii_runs(text):
+    """`sansho._n` + casefold した text の ASCII 英数字の極大の連なり (`[0-9a-z]+`) の集合 (R' e6・e7、spec 2026-11-27-request-span-reinforce-design §8.2)。
+    連どうしは一致で比べる (`3` と `30` は別)。str でなければ空。"""
+    if not isinstance(text, str):
+        return set()
+    return set(_ASCII_RUN.findall(sansho._n(text).casefold()))
+
+
+# `_RUN_FIND` (recall の道。変えない) の 2 つ目の組と同じ字の範囲 (カタカナ・長音・々・漢字)。`_mask_conditions` の非 ASCII の境に使う。
+_MASK_WIDE_CHAR = re.compile(r"[ァ-ヺー-ヿ々㐀-䶿一-鿿]")
+
+
+def _mask_conditions(text_n, keys_n):
+    """R' e6 (spec 2026-11-27-request-span-reinforce-design §8.11.3): 正規化済みの本文 text_n の中の、縁 (正規化済み) の出現を同じ長さの空白に置き換えた文字列。
+    出現は塗る前の text_n で決める (縁の順に依らない)。縁が別の名の一部としてしか現れない箇所は塗らない = 縁の最初・最後の字が ASCII 英数字なら外側の隣が
+    ASCII 英数字でないこと、非 ASCII の組 (`_MASK_WIDE_CHAR`) の字なら外側の隣がその組の字でないこと。純関数。"""
+    out = list(text_n)
+    for k in keys_n:
+        if not k:
+            continue
+        start = 0
+        while True:
+            i = text_n.find(k, start)
+            if i < 0:
+                break
+            j = i + len(k)
+            ok = True
+            if _ASCII_RUN.match(k[0]) and i > 0 and _ASCII_RUN.match(text_n[i - 1]):
+                ok = False
+            if _ASCII_RUN.match(k[-1]) and j < len(text_n) and _ASCII_RUN.match(text_n[j]):
+                ok = False
+            if _MASK_WIDE_CHAR.match(k[0]) and i > 0 and _MASK_WIDE_CHAR.match(text_n[i - 1]):
+                ok = False
+            if _MASK_WIDE_CHAR.match(k[-1]) and j < len(text_n) and _MASK_WIDE_CHAR.match(text_n[j]):
+                ok = False
+            if ok:
+                for q in range(i, j):
+                    out[q] = " "
+            start = i + 1
+    return "".join(out)
+
+
+def _injected_echo_values(seed, spans, grounded, window=None, content=None):
+    """R' (Issue #1, spec 2026-11-27-request-span-reinforce-design §3.3・§8.2) の述語 E' の純関数部 (e2〜e8。注入 e1 は呼び手が見る)。
+    種子 S の保存された縁 K、user の span の疑の文を除いた残り U、assistant の span A (すべて `sansho._n` + casefold、部分一致) で、
+    e2 K が空でなく、どの縁も U か A に在る (span 全体が S を言う) / e3 V = A に在って U に無い縁が空でない (値は assistant の言だけ) /
+    e4 ゲートの接地した縁がどれも K か A に在る (利用者の言が S にも答えにも無い縁を持ち込まない) /
+    e7 V のどの縁も ASCII の連を 1 つ以上持つ (持たない縁があれば値の交代を見分けられないので止めない) /
+    e6 利用者の span の全文 (疑の文も含む) と assistant の span の全文から、それぞれ S の縁 (数字だけの縁を除く、§8.13) の出現を塗って (`_mask_conditions`) 残った ASCII の連が、
+    両側に共通して在る (在れば S の縁の外で 2 人が同じことを言った = 利用者は新しいことを言っている。連の引き算はしない・S の content・evidences は読まない、§8.11) /
+    e8 数字を含む S の縁が U に在る (利用者が値 (や数字つきの題) を言っている。縁に 2 つの値を持つ種子の値の交代を止めない、§8.12) /
+    e5 V のどの縁も content (植える内容) に部分一致で在る (値を替える提案を止めない。content が str でなければ偽)。
+    立たなければ []、立てば V (S の縁の保存の綴り・種子の順)。何も書かない。"""
+    def fold(text):
+        return sansho._n(text).casefold()
+
+    keys = [(c, fold(c)) for c in seed_conditions(seed)]
+    keys = [(c, k) for c, k in keys if k.strip()]
+    if not keys:
+        return []
+    remainders_of = _span_remainders_fn(window)
+    user_texts = []
+    asst_texts = []
+    for sp in spans or ():
+        text = _span_text(sp)
+        if text is None:
+            continue
+        if isinstance(sp, dict) and sp.get("sansho") == "圓成實":
+            user_texts.extend(r.casefold() for r in remainders_of(sp))
+        else:
+            asst_texts.append(fold(text))
+    if not all(any(k in t for t in user_texts + asst_texts) for _, k in keys):
+        return []
+    values = [c for c, k in keys if any(k in t for t in asst_texts) and not any(k in t for t in user_texts)]
+    if not values:
+        return []
+    own = {k for _, k in keys}
+    for g in grounded or ():
+        if not isinstance(g, str):
+            continue
+        gk = fold(g)
+        if gk.strip() and gk not in own and not any(gk in t for t in asst_texts):
+            return []
+    # e7
+    if not all(_ascii_runs(c) for c in values):
+        return []
+    # e6 (§8.11.3): 両側の全文 (疑の文を除かない) から S の縁の出現を塗り、残った ASCII の連が両側に共通して在れば止めない。
+    # 数字だけの縁 (`3`・`000`) は塗らない (§8.13 裁定 (a)): 塗ると、新しい値が縁の区切られた並びだけで書ける形 (縁 [3, 3.11] に「3.3」) が消える。
+    keys_n = [k for _, k in keys if not re.fullmatch(r"[0-9]+", k.strip())]
+    user_runs = set()
+    asst_runs = set()
+    for sp in spans or ():
+        text = _span_text(sp)
+        if text is None:
+            continue
+        runs = set(_ASCII_RUN.findall(_mask_conditions(fold(text), keys_n)))   # 塗った後に正規化をかけ直さない (空白が消えて連が繋がるため)
+        if isinstance(sp, dict) and sp.get("sansho") == "圓成實":
+            user_runs |= runs
+        else:
+            asst_runs |= runs
+    if user_runs & asst_runs:
+        return []
+    # e8 (§8.12): 数字を含む S の縁が U に在れば止めない
+    if any(re.search(r"[0-9]", k) and any(k in t for t in user_texts) for _, k in keys):
+        return []
+    # e5
+    if not isinstance(content, str):
+        return []
+    folded_content = sansho._n(content).strip().casefold()
+    if not all(sansho._n(c).casefold() in folded_content for c in values):
+        return []
+    return values
+
+
 def doubt_only_conditions(seed):
     """`doubt_judgement(seed)[0]`: 決定 の縁のうち問いの文にしか無いもの (conditions の順・seed の綴り、無ければ `[]`)。"""
     return doubt_judgement(seed)[0]
@@ -2386,7 +2505,7 @@ class AlayaStore:
         戻り値: {"sansho","decision","grounded_conditions","reason","spans","seed","is_new",
         "kind","project"} (+ 取り下げ照合 時 "withdrawn_match": W の id・seed=None・is_new=None、
         双子照合 時 "twin_match": H の id・seed=None・is_new=None・H は不変 (#78)、
-        user span 0 本の提案が user の逐語を持つ種子へ併合されるとき "user_span_match": その id・seed=None・is_new=None・種子は不変 (decision は三性のまま、#101 D)、同 session で注入済みの種子への assistant だけの言い直し (R, #105) は "echo_match" で同形、依他起 の提案 (kind 決定・回避策・性向 のみ、所在 は除外 §7.2) が同 kind・同 project の生きた 圓成實 と content 同一 (`sansho._n` + strip + casefold・§7.1) ∧ 縁共有 なら新規の直前に "settled_match" (SC', #152) で同形、+ supersede 時 "superseded": True と "also_superseded": [ids]、
+        user span 0 本の提案が user の逐語を持つ種子へ併合されるとき "user_span_match": その id・seed=None・is_new=None・種子は不変 (decision は三性のまま、#101 D)、同 session で注入済みの種子への assistant だけの言い直し (R, #105) は "echo_match" で同形、user の span を持つ提案でも、注入済みの 依他起 の種子 S の縁をすべて span が言い、その値 (assistant の span にだけ在る縁) を user の span が言わず持ち込みも無ければ "echo_match" で同形 (R', Issue #1。強める側 = 明示 reinforce・併合、植える側 = 決定・回避策の新規の直前で S と同じ kind・project のとき。どちらも content が値を言い (e5)、利用者と答えが共有する ASCII の連が S に無いものを持たず (e6)、値の縁がどれも ASCII の連を持つ (e7) ときだけ = 値の交代は止めない)、依他起 の提案 (kind 決定・回避策・性向 のみ、所在 は除外 §7.2) が同 kind・同 project の生きた 圓成實 と content 同一 (`sansho._n` + strip + casefold・§7.1) ∧ 縁共有 なら新規の直前に "settled_match" (SC', #152) で同形、+ supersede 時 "superseded": True と "also_superseded": [ids]、
         reinforce/併合時 "reinforced": True、遍計所執時 "quarantine_entry": 記帳した観測用エントリ。
         却下 (decision "reject") のときは kind/project が無いことがある)。
         """
@@ -2674,6 +2793,24 @@ class AlayaStore:
                 return False
             return all(seed["id"] in injected_by_turn.get(i, ()) for i in indexes)
 
+        def _request_echo(seed):
+            """R' (Issue #1): user の span を持つ (承認の対でない) 提案が、assistant の span が接地した往復のすべてで注入済みの種子 S の
+            復唱か。S の値 (assistant の span にだけ在る縁) を返す (空 = 当たらない)。判定の本体は `_injected_echo_values`。"""
+            if (
+                injected_by_turn is None
+                or replacement_for is not None
+                or kind == "再開点"
+                or approval_pair_only
+                or not proposal_has_user_span
+            ):
+                return []
+            indexes = [sp.get("turn_index") for sp in decision["spans"] if sp.get("sansho") != "圓成實"]
+            if not indexes or any(i is None for i in indexes):
+                return []
+            if not all(seed["id"] in injected_by_turn.get(i, ()) for i in indexes):
+                return []
+            return _injected_echo_values(seed, decision["spans"], grounded, window, content)
+
         def _record_only(seed, note, key):
             _note(note)
             log_entry["seed_id"] = seed["id"]
@@ -2838,6 +2975,10 @@ class AlayaStore:
                     return _record_only(target, _D_NOTE.format(target["id"]), "user_span_match")
                 if _echoes_injection(target):
                     return _record_only(target, _R_NOTE.format(target["id"]), "echo_match")
+                # R' (Issue #1): 縁の共有より前に置く (値を言わない依頼文は共有 1 語で new に倒れうる)。
+                v = _request_echo(target)
+                if v:
+                    return _record_only(target, _R_REQ_NOTE.format(target["id"], "・".join(v)), "echo_match")
                 if not _shares_condition(target, grounded):
                     # D / R の後に置く: user の逐語を持つ種子・注入済みの種子への誤 target は記録のみが安全側 (人の裁定)。
                     _note("reinforce 不可: target と縁を必要語数共有しないため new として扱う")
@@ -2899,6 +3040,9 @@ class AlayaStore:
             # R (#105): 同 session で注入済みの種子を assistant だけが言い直した = 自己強化。記録のみ。
             if _echoes_injection(best_seed):
                 return _record_only(best_seed, _R_NOTE.format(best_seed["id"]), "echo_match")
+            v = _request_echo(best_seed)   # R' (Issue #1)
+            if v:
+                return _record_only(best_seed, _R_REQ_NOTE.format(best_seed["id"], "・".join(v)), "echo_match")
             return _reinforce(best_seed)
 
         # SC' (#152, spec 2026-11-10-request-span-crossing-design §7 / §7.1 / §7.2): 新規植え付けの直前。依他起 の提案 (kind は 決定・回避策・性向 のみ = 再開点・所在 を除く。所在 は値が span に在る §7.2。人の置き換えも除く) が、
@@ -2979,6 +3123,44 @@ class AlayaStore:
                         return _record_only(hit, _EC2_NOTE.format(hit["id"]), "echo_match")
                     if relaxed_hit is not None:
                         return _record_only(relaxed_hit, _EC2_TARGET_NOTE.format(relaxed_hit["id"]), "echo_match")
+
+        # R'-new (Issue #1, spec 2026-11-27-request-span-reinforce-design §3.4): 新規の直前 (順は 取り下げ照合 → 双子照合 → D → R → R' → SC' → EC2' → R'-new)。
+        # kind 決定・回避策 (承認の対・人の置き換え・再開点は除く)・user の span あり・injected_by_turn ありの提案が、assistant の span が接地した往復の
+        # すべてで注入済みの 依他起 の生きた種子 S の復唱 (述語 E': `_injected_echo_values` が空でない。e5 = content が S の値 V をすべて含む、
+        # e6 = 利用者と答えが共有する ASCII の連に S に無いものが無い、e7 = V の縁がどれも ASCII の連を持つ、を含む §8.2) で、S の kind・project が提案と同じ (§8.5) なら、
+        # 植えず記録のみ (`echo_match`)。縁の共有の規則は使わない (網羅 e2 が代わる)。圓成實 の S は SC' の範囲。複数なら id 最小。
+        if (
+            injected_by_turn is not None
+            and replacement_for is None
+            and kind in ("決定", "回避策")
+            and not approval_pair_only
+            and proposal_has_user_span
+            and isinstance(content, str)
+        ):
+            rn_indexes = [sp.get("turn_index") for sp in decision["spans"] if sp.get("sansho") != "圓成實"]
+            if rn_indexes and all(i in injected_by_turn for i in rn_indexes):
+                rn_ids = set(injected_by_turn[rn_indexes[0]])
+                for i in rn_indexes[1:]:
+                    rn_ids &= set(injected_by_turn[i])
+                rn_hit = None
+                rn_values = []
+                for sid in sorted(rn_ids):
+                    seed = self._find_seed(sid)
+                    if (
+                        seed is None
+                        or not is_live(seed)
+                        or seed.get("sansho") != "依他起"
+                        or seed is sp_excluded_target
+                        or _seed_kind(seed) != kind
+                        or _seed_project(seed) != project
+                    ):
+                        continue
+                    v = _injected_echo_values(seed, decision["spans"], grounded, window, content)
+                    if v:
+                        rn_hit, rn_values = seed, v
+                        break
+                if rn_hit is not None:
+                    return _record_only(rn_hit, _R_REQ_NEW_NOTE.format(rn_hit["id"], "・".join(rn_values)), "echo_match")
 
         new_seed = {
             "id": self.state["next_id"],
