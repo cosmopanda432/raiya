@@ -14,7 +14,7 @@
 import copy
 
 from . import sansho
-from .alaya import URL_RE, conjecture_only, doubt_judgement, extract_local_paths, has_user_span, seed_kind
+from .alaya import URL_RE, approval_only, conjecture_only, doubt_judgement, extract_local_paths, has_user_span, seed_kind
 
 INITIAL_EGO_WEIGHT = 1.0
 EGO_WEIGHT_FLOOR = 0.1
@@ -209,6 +209,9 @@ def _seed_line_parts(seed):
         if heading is not None:
             return ("- {}: {}(強度{}・逐語: {}{})".format(label, heading, strength, span, partial), None,
                     (label, "逐語", len(span), "", partial))
+        if approval_only(seed):   # 承認の対 (T3): 見出しは提案者の言 (content)、user の側は「承認: <逐語>」だけ。要約なしの形は作らない
+            return ("- 決定(承認): {}(強度{}・承認: {}{})".format(content, strength, span, partial), None,
+                    ("決定(承認)", "内容", len(content), "", partial))
         shown = _latest_user_evidences(seed)
         doubt, keep = _doubt_tag(seed, shown)
         if conjecture_only(seed, shown):   # #121 A': 推量だけの 決定 は見出しを「決定(推量)」・要約なし (keep のときだけ #120 と揃えて残す)
@@ -266,6 +269,8 @@ def _render_index_line_base(seed):
         heading = _mixed_heading(seed)
         if heading is not None:
             return "- {}: {} (強度{}・逐語: {}{})".format(label, heading, strength, _user_span_text(seed), partial)
+        if approval_only(seed):   # 承認の対 (T3)
+            return "- 決定(承認): {} (強度{}・承認: {}{})".format(content, strength, _user_span_text(seed), partial)
         shown = _latest_user_evidences(seed)
         doubt, keep = _doubt_tag(seed, shown)
         if conjecture_only(seed, shown):   # #121 A' (keep のときだけ要約を残す)

@@ -317,6 +317,14 @@ class TestParseProposals(unittest.TestCase):
         self.assertIn("逐語", guide)
         self.assertIn(guide, engine._build_propose_prompt("u", "a"))
 
+    def test_kind_guide_asks_for_approval_pair_spans(self):
+        # 承認の対 (spec 2026-11-27-ratified-decision-design §5 T2): 短い承認で推奨を採ったときは、推奨と承認を別々の span で引かせる
+        phrase = "推奨を述べたアシスタントの発言と承認のユーザー発言"
+        self.assertIn(phrase, engine.KIND_GUIDE)
+        view = {"related": [], "related_total": 0, "groups": [], "groups_total": 0}
+        self.assertIn(phrase, engine._build_consolidate_prompt([], view))
+        self.assertIn(phrase, engine._build_propose_prompt("u", "a"))
+
     def test_kind_guide_decision_line_does_not_claim_demotion_to_disposition(self):
         # #114 U (spec 2026-10-30-decision-without-rejection §7 プロンプト追補): 片側の 決定 も 決定 のまま植わるので、
         # 決定 の行は「性向 として扱われる」と言わない。回避策 の行は今も真なので残る。

@@ -4,7 +4,7 @@ import しない (葉のモジュール。AST pin)。"""
 
 LANGUAGES = ("ja", "en")            # 和集合の順序。dict の反復順に頼らない
 ROLES = ("decision_reject", "workaround_cause", "preference_suffix", "user_correction", "decision_assert", "hearsay", "workaround_avoid", "self_stated_cause", "conjecture",
-         "decision_assert_in_sentence", "conjecture_in_sentence")
+         "decision_assert_in_sentence", "conjecture_in_sentence", "approval", "approval_negation")
 
 MARKERS = {
     "ja": {
@@ -54,6 +54,11 @@ MARKERS = {
         # 文中一致の対の役 (R3b・spec 2026-11-26-en-marker-table-design §4.2): ja は文末一致の役 (decision_assert・conjecture) だけで足りるので空。
         "decision_assert_in_sentence": (),
         "conjecture_in_sentence": (),
+        # 承認の語 (承認の対・spec 2026-11-27-ratified-decision-design §3.3/§4・T1): user の短い承認の往復に当たる語。`go` は en 表 (「GO」「Go」「ＧＯ」は NFKC + casefold の照合で当たる。ASCII の語の境は `_has_marker` の R2b が持つ)。1 人の利用者の癖に合わせた初版。
+        "approval": ("推奨で", "推奨どおり"),
+        # 承認の語の後ろにあれば承認にしない否定の語 (T5・spec 2026-11-27-ratified-decision-design §7.2 N3)。表だけ直せば語を足し引きできる。
+        # 入れない: 「ず」「待」の 1 字 (「まずは」「期待どおり」を外す)。語表に無い否定 (「見送り」「厳しい」) は当たる (既知の限界)。
+        "approval_negation": ("ない", "ません", "まだ", "待って", "待て", "保留", "やめ", "止め", "だめ", "ダメ"),
     },
     "en": {
         # 2026-11-26 測定 (spec 2026-11-26-en-marker-table-design §1.3・§5.6・裁定 9): rejected を外した (LongMemEval の user の 12 本から見た 4 本が受け身 = 決定でなかった。
@@ -97,6 +102,10 @@ MARKERS = {
             "we chose", "we settled on", "i settled on", "let's use",
         ),
         "conjecture_in_sentence": ("maybe", "perhaps", "probably"),
+        # 承認の語 (T1): ja の表は ASCII の字を持てない (casefold の不変条件) ので `go` は en に置く。照合は union (言語を問わない)。
+        "approval": ("go",),
+        # 英語の否定 (`no go`・`don't go`) は _is_approval_text の ASCII の英字の残りの検査で外れるので en は ()。
+        "approval_negation": (),
     },
 }
 

@@ -96,6 +96,9 @@ HEARSAY_MARKERS = markers.union("hearsay")   # 再開点 の伝聞の言 (RH2・
 CONJECTURE_MARKERS = markers.union("conjecture")   # 決定 の描画で「決定(推量)」にする推量の印 (文末一致・描画のみ・#121 A')
 DECISION_ASSERT_MARKERS = markers.union("decision_assert")   # 性向 の申告を 決定 へ上げる断定の印 (文末一致・#117)
 DECISION_ASSERT_IN_SENTENCE_MARKERS = markers.union("decision_assert_in_sentence")   # 同・問いでない文の中のどこかに在れば立つ対の役 (R3b・2026-11-26)
+APPROVAL_MARKERS = markers.union("approval")   # 承認の対: user の短い承認の語 (T1・spec 2026-11-27-ratified-decision-design §3.3)
+APPROVAL_NEGATION_MARKERS = markers.union("approval_negation")   # 承認の語の後ろにあれば承認にしない否定の語 (T5・spec §7.2 N3)
+APPROVAL_TURN_MAX_CHARS = 25   # 短い承認の往復の字数の上限 (工学の定数・測定書 §2.2。原典は決めない)
 CONJECTURE_IN_SENTENCE_MARKERS = markers.union("conjecture_in_sentence")   # 推量の印の文中一致の対の役 (R3b・描画のみ)
 # 注入索引の kind 別上限 (spec §6.3)。合計 30 = INDEX_MAX。再開点は索引に入れずセッション先頭で
 # 1 件だけ出す (`resume_point`)。性向は既定で注入しない (§7・§11.2)。
@@ -228,6 +231,7 @@ URL_RE = re.compile(r"https?://[^\s<>\"'「」()（）、。,\]}…]+")
 
 RESUME_HEARSAY_RECORD_ONLY = "再開点: 伝聞の言だけの提案は 再開点 を置き換えない"
 RESUME_NEEDS_FORM_IN_USER_SPAN = "圓成實 の 再開点 は user の逐語に問いでない文と縁が要る"
+APPROVAL_PAIR_NOTE = "決定 の形: 承認の対 (assistant の推奨 + user の短い承認)"
 PROMOTION_NOTE = "性向 の申告に断定の印: 決定 として受理"
 SELF_STATED_WORKAROUND_NOTE = "性向 の申告に 原因 → 回避 の形 (user の逐語): 回避策 として受理"
 PLACE_NEEDS_FORM_IN_USER_SPAN = "圓成實 の 所在 は user の逐語に path か URL が要る"
@@ -396,7 +400,14 @@ def plant_precheck(window, proposal, seeds=None, exclude_id=None):
     kind, kind_note = _resolve_kind(proposal, decision["spans"], decision["grounded_conditions"], window, allow_promotion=False)
     if kind is None:
         return kind_note
-    indexes = {s["turn_index"] for s in decision["spans"]}
+    spans = decision["spans"]
+    if kind_note == APPROVAL_PAIR_NOTE:
+        # imprint と同じ: 承認の span を対の往復へ付け替えてから project を判定する (付け替えないと窓の最初の GO の project で判定が食い違う)
+        pair = _approval_pair(spans, decision["grounded_conditions"], window)
+        if pair is not None:
+            spans = list(spans)
+            spans[pair[0]] = dict(spans[pair[0]], turn_index=pair[1])
+    indexes = {s["turn_index"] for s in spans}
     status, value = _window_project(window, indexes)
     if status == "reject":
         return value
@@ -930,6 +941,110 @@ def _decision_form_in_grounded_spans(grounded_spans, conditions, window=None):
     return False
 
 
+def _is_approval_text(text):
+    """承認の語の短い往復か (spec 2026-11-27-ratified-decision-design §3.3・T1/T3/T4 が共有)。`n = sansho._n(text).strip()` が、
+    空でなく・`APPROVAL_TURN_MAX_CHARS` 字以下で・承認の語を含み・訂正の印も好みの印も含まず、承認の語を取り除いた残りに
+    ASCII の英字が無いとき真 (`go back`・`no go`・「shipper GO」を外す)。純関数。"""
+    n = sansho._n(text if isinstance(text, str) else "").strip()
+    if not n or len(n) > APPROVAL_TURN_MAX_CHARS:
+        return False
+    if not _has_marker(n, APPROVAL_MARKERS):
+        return False
+    if _has_marker(n, USER_CORRECTION_MARKERS) or _has_marker(n, PREFERENCE_SUFFIXES):
+        return False
+    if _has_marker(n, DECISION_REJECT_MARKERS):   # N1: 却下の印のある往復は承認でない
+        return False
+    if _has_marker(_approval_tail(n), APPROVAL_NEGATION_MARKERS):   # N3: 最後の承認の語より後ろの否定
+        return False
+    rest = _marker_fold(n)
+    for m in APPROVAL_MARKERS:
+        rest = rest.replace(_marker_fold(m), "")
+    return not any("a" <= c <= "z" for c in rest)
+
+
+def _approval_tail(n):
+    """正規化済みの本文 `n` の、最後に当たる承認の語 (始まりが最も後ろのもの) より後ろの部分 (`_marker_fold` 済み)。承認の語が無ければ ""。
+    語の境は見ない (境の要る ASCII の `go` が語の一部で当たる形は、`_is_approval_text` の ASCII の英字の残りの検査で偽になる)。"""
+    folded = _marker_fold(n)
+    best_start = -1
+    best_end = 0
+    for m in APPROVAL_MARKERS:
+        fm = _marker_fold(m)
+        i = folded.rfind(fm) if fm else -1
+        if i > best_start:
+            best_start, best_end = i, i + len(fm)
+    return folded[best_end:] if best_start >= 0 else ""
+
+
+def _non_question_remainder(text):
+    """text を文に切り (窓なし)、疑の文を除いた残りを "\n" でつないだもの (正規化済み)。"""
+    n, pieces = _sentence_pieces(text)
+    return "\n".join(n[lo:hi] for lo, hi, question in pieces if not question)
+
+
+def _approval_pair(spans, conditions, window, session_by_turn=None):
+    """承認の対 (spec §3.3): 戻り値 `(span_pos, row)` か None。`spans` は `evaluate_proposal` の span dict の列、`conditions` は
+    ゲートの接地した縁。assistant の推奨の span (圓成實 でない span) が縁を (疑の文を除いた残りに) 含み、それに続く同じ座の最初の往復
+    (前の往復の推奨の形。先に見る)、または同じ往復 (前の同じ座の往復の assistant の本文に縁がある言い直しの形) の user の本文が
+    短い承認 (`_is_approval_text`) で、その往復で接地する user の span が承認の語であり、2 つの往復の project が同じとき当たる。
+    座は `session_by_turn` (str 以外は None の 1 つの座。None なら全往復が 1 つの座)。純関数・何も書かない。"""
+    turns = window if isinstance(window, (list, tuple)) else ()
+    size = len(turns)
+    if not size or not isinstance(spans, (list, tuple)):
+        return None
+    conds = [sansho._n(c).casefold() for c in (conditions if isinstance(conditions, (list, tuple)) else []) if isinstance(c, str)]
+    conds = [c for c in conds if c.strip()]
+    if not conds:
+        return None
+    if session_by_turn is not None and len(session_by_turn) == size:
+        seats = [st if isinstance(st, str) else None for st in session_by_turn]
+    else:
+        seats = [None] * size
+
+    def project_of(index):
+        project = getattr(turns[index], "project", None)
+        return project if isinstance(project, str) else None
+
+    user_rows = {}
+
+    def user_row_is_approval(j):
+        if j not in user_rows:
+            text = getattr(turns[j], "user_text", None)
+            user_rows[j] = isinstance(text, str) and _is_approval_text(_non_question_remainder(text))
+        return user_rows[j]
+
+    for sp in spans:
+        if not isinstance(sp, dict) or sp.get("sansho") == "圓成實":
+            continue
+        i = sp.get("turn_index")
+        if not isinstance(i, int) or isinstance(i, bool) or not 0 <= i < size:
+            continue
+        raw = _span_text(sp) or ""
+        if not any(c in _non_question_remainder(raw).casefold() for c in conds):
+            continue
+        candidates = []
+        later = next((j for j in range(i + 1, size) if seats[j] == seats[i]), None)
+        if later is not None:
+            candidates.append(later)
+        earlier = next((p for p in range(i - 1, -1, -1) if seats[p] == seats[i]), None)
+        if earlier is not None:
+            prev_assistant = sansho._n(getattr(turns[earlier], "assistant_text", "") or "").casefold()
+            if any(c in prev_assistant for c in conds):
+                candidates.append(i)
+        for j in candidates:
+            if project_of(i) != project_of(j) or not user_row_is_approval(j):
+                continue
+            for pos, u in enumerate(spans):
+                if not isinstance(u, dict) or u.get("sansho") != "圓成實":
+                    continue
+                u_span = _span_text(u) or ""
+                if _is_approval_text(u_span) and sansho.classify_sansho(
+                    u_span, turns[j].user_text, turns[j].assistant_text
+                ) == "圓成實":
+                    return pos, j
+    return None
+
+
 def _span_remainders_fn(window=None):
     """圓成實 の span 1 本の「疑の文を除いた残り」を返す関数を作る (`_decision_form_in_grounded_spans` から切り出し、
     #117 の 決定_assert と #115 の 再開点 の形が同じ切り方を共有する)。戻り値 `remainders_of(sp)` = 残り (正規化済み・
@@ -1205,6 +1320,41 @@ def conjecture_only(seed, shown=()):
     return conjectured
 
 
+def _approval_span_restates(span, conditions):
+    """承認の span が種子の縁を言い直しているか (T5 (a)・spec §7.1)。span の疑の文を除いた残りから承認の語を取り除いた後に、縁
+    (`sansho._n` + casefold・空白だけは除く) が部分一致すれば真。承認の語を先に取り除くのは、縁が承認の語の一部 (縁「推奨」と span「推奨でGO」) の場合のため。"""
+    conds = [sansho._n(c).casefold() for c in (conditions if isinstance(conditions, (list, tuple)) else []) if isinstance(c, str)]
+    conds = [c for c in conds if c.strip()]
+    if not conds:
+        return False
+    rest = _marker_fold(_non_question_remainder(span if isinstance(span, str) else ""))
+    for m in APPROVAL_MARKERS:
+        rest = rest.replace(_marker_fold(m), "")
+    return any(c in rest for c in conds)
+
+
+def approval_only(seed):
+    """承認の対の 決定 の種子か (spec 2026-11-27-ratified-decision-design §3.5・T3/T4 が共有)。読み時の派生・純関数 (evidences だけを読み、何も書かない)。
+    kind が 決定 で、sansho が 依他起 で (圓成實 は対象外 = 受領書の fixture #36 の形)、source == "assistant" で span が空でない str の evidence があり、
+    種子の全 user span (`_is_user_span_evidence`) が 1 本以上あって、どれも `_is_approval_text` を満たし、かつ種子の縁を言い直していない (`_approval_span_restates`・T5 (a)) とき真。
+    承認の対は言い直しの無い許可だけを受けるので、中身のある user の span を 1 本でも持つ種子は偽。"""
+    if not isinstance(seed, dict) or seed_kind(seed) != "決定" or seed.get("sansho") != "依他起":
+        return False
+    evidences = seed.get("evidences")
+    if not isinstance(evidences, (list, tuple)):
+        return False
+    assistant = False
+    users = False
+    for e in evidences:
+        if _is_user_span_evidence(e):
+            if not _is_approval_text(e["span"]) or _approval_span_restates(e["span"], seed.get("conditions")):
+                return False
+            users = True
+        elif isinstance(e, dict) and e.get("source") == "assistant" and isinstance(e.get("span"), str) and e["span"]:
+            assistant = True
+    return assistant and users
+
+
 def doubt_only_conditions(seed):
     """`doubt_judgement(seed)[0]`: 決定 の縁のうち問いの文にしか無いもの (conditions の順・seed の綴り、無ければ `[]`)。"""
     return doubt_judgement(seed)[0]
@@ -1232,7 +1382,7 @@ def _main_seat(span_results, window, seats):
     return seats[latest]
 
 
-def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow_promotion=True):
+def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow_promotion=True, session_by_turn=None):
     """形の検査 (spec §4.3)。戻り値 (kind, note): kind が None なら却下 (note が理由)。
     note は読み替えが起きたときの注記 (無ければ None)。`sansho.py` には触れない。
     決定 は 圓成實 と判定された span (`grounded_spans`・`sansho._n` 済みで照合) に (i) 却下側の印、または
@@ -1254,8 +1404,11 @@ def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow
     if raw not in VALID_KINDS:
         return None, "kind {!r} は VALID_KINDS に無いため却下".format(raw)
     content = proposal.get("content") or ""
+    pair_note = None
     if raw == "決定" and not _decision_form_in_grounded_spans(grounded_spans, conditions, window):
-        return DEFAULT_KIND, "決定 に 圓成實 の引用の却下側の印も断定の形も無いため 性向 として受理"
+        if _approval_pair(grounded_spans, conditions, window, session_by_turn) is None:
+            return DEFAULT_KIND, "決定 に 圓成實 の引用の却下側の印も断定の形も無いため 性向 として受理"
+        pair_note = APPROVAL_PAIR_NOTE
     if raw == "回避策" and not _has_marker(content, WORKAROUND_CAUSE_MARKERS):
         return DEFAULT_KIND, "回避策 に原因の印が無いため 性向 として受理"
     if raw == "回避策":
@@ -1266,7 +1419,7 @@ def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow
         return DEFAULT_KIND, "{} の文末が好みの形のため 性向 として受理".format(raw)
     if raw == DEFAULT_KIND and allow_promotion:
         return _promote_disposition(content, grounded_spans, conditions, window)
-    return raw, None
+    return raw, pair_note
 
 
 def _promote_disposition(content, grounded_spans, conditions, window):
@@ -1430,7 +1583,7 @@ def _index_relevance(seed, runs, lengths=None, index=None):
     """索引の「今の入力との関わり」(純粋・大きいほど関わる)。`runs` (= `_input_runs`) のうち、種子の user の span
     (`_is_user_span_evidence`、`sansho._n(..).lower()`) のどれかに「現前」するものの字数の和 (同じ連なりは 1 回)。現前 =
     非 ASCII の連なりは部分文字列として在ること、ASCII の連なりは span の片の語頭 (片の先頭か `-./_` の直後) に在ること
-    (8d・T2。`_occurs_as_word` と同じ規則で、右は見ない)。assistant の span・content・縁は読まない。`runs` が空なら 0。
+    (8d・T2。`_occurs_as_word` と同じ規則で、右は見ない)。assistant の span・content・縁は読まない。**例外 (T4・spec 2026-11-27-ratified-decision-design §3.5)**: 承認の対の種子 (`approval_only`) だけは assistant の span も同じ切り方で読む。`runs` が空なら 0。
     `index` は呼び手が 1 回の想起で 1 度だけ `_run_index(runs)` で作って渡す (`runs` は `_input_runs` の出力であること。`_run_index` の前提)。
     None なら呼び出しごとに作り直す (遅い。種子の数だけ索引を作るので、直接呼びやテスト向け)。
     計算量: 入力の連なりは 1 回の想起で 1 度だけ `_RunIndex` にし (`index`、None なら `runs` から作る。`lengths` は互換のため受けるが読まない)、
@@ -1446,8 +1599,12 @@ def _index_relevance(seed, runs, lengths=None, index=None):
         index = _run_index(runs)
     lengths = index.lengths
     hit = set()
+    paired = approval_only(seed)   # T4: 承認の対の種子だけ assistant の span も読む (user の span は承認の語だけで関わりがほぼ 0 になるため)
     for e in evidences:
-        if not _is_user_span_evidence(e):
+        if not (
+            _is_user_span_evidence(e)
+            or (paired and e.get("source") == "assistant" and isinstance(e.get("span"), str) and bool(e.get("span")))
+        ):
             continue
         for piece in _run_groups(e["span"]):
             n = len(piece)
@@ -2342,12 +2499,24 @@ class AlayaStore:
         # 形の検査 (改修5 §4.3): kind の読み替え/却下は決定論の文字列検査。身分 (sansho) の判定の後、
         # 接地した提案にだけ効く (列挙に無い kind は却下、決定/回避策/好みの形は 性向 に読み替え)。
         kind, kind_note = _resolve_kind(
-            proposal, decision["spans"], decision["grounded_conditions"], window, allow_promotion=(replacement_for is None)
+            proposal, decision["spans"], decision["grounded_conditions"], window, allow_promotion=(replacement_for is None),
+            session_by_turn=session_by_turn,
         )
         if kind is None:
             return _reject(kind_note)
         if kind_note:
             _note(kind_note)
+        # T1 (承認の対): 承認の span の往復を、対の承認の往復へ付け替える (ゲートの turn_index は最初に接地した往復なので、窓に GO が
+        # 複数あると食い違う。X1 の付け替えと同じ作法)。これで ledger_id・強度・描画の「往復 N」が対の往復を指す。
+        approval_pair_only = kind_note == APPROVAL_PAIR_NOTE
+        if approval_pair_only:
+            pair = _approval_pair(decision["spans"], decision["grounded_conditions"], window, session_by_turn)
+            if pair is not None:   # `_resolve_kind` が同じ引数で当てたので None にはならない
+                pos, row = pair
+                repointed = list(decision["spans"])
+                repointed[pos] = dict(repointed[pos], turn_index=row)
+                decision = dict(decision, spans=repointed)
+                result["spans"] = repointed
         if replacement_for is not None:
             # 人間の置き換え (raiya-correct replace): 由来を理由に残す。B4 の影はこの呼び出しでは飛ばす。
             _note("置き換え: 取り下げた #{} の代わり (人間の宣言)".format(replacement_for))
@@ -2491,9 +2660,16 @@ class AlayaStore:
             R (#105): assistant だけの提案が、その assistant の span が接地した往復と同じ session に
             注入済みの種子を指すか。`injected_by_turn` (往復の添字 -> 注入済み種子 id の集合) は呼び手
             (engine.consolidate) が manas_log から作る。None (MCP imprint 等) なら R は効かない。"""
-            if injected_by_turn is None or replacement_for is not None or kind == "再開点" or proposal_has_user_span:
+            if injected_by_turn is None or replacement_for is not None or kind == "再開点":
                 return False
-            indexes = [sp.get("turn_index") for sp in decision["spans"]]
+            if approval_pair_only:
+                # T1: 承認の対の提案は user の span (承認) を持つが、中身は assistant の言。復唱の判定は assistant の span の往復だけで行う
+                # (GO を足場に、注入 → 復唱 → 強化の環が戻るのを止める)。
+                indexes = [sp.get("turn_index") for sp in decision["spans"] if sp.get("sansho") != "圓成實"]
+            elif proposal_has_user_span:
+                return False
+            else:
+                indexes = [sp.get("turn_index") for sp in decision["spans"]]
             if not indexes or any(i is None for i in indexes):
                 return False
             return all(seed["id"] in injected_by_turn.get(i, ()) for i in indexes)
@@ -2760,7 +2936,7 @@ class AlayaStore:
         if (
             injected_by_turn is not None
             and replacement_for is None
-            and kind in ("所在", "性向")
+            and (kind in ("所在", "性向") or (kind == "決定" and approval_pair_only))
         ):
             # (i) は疑の文を除いた残りで判定する (EC6, spec §9): 圓成實 の span ごとに窓の user の本文で切った残りを文ごとに渡す
             # (文ごと = `sansho._n` が CJK 隣接の空白を消すので、連結すると縁が文境を跨いで一致しうる)。
@@ -2773,7 +2949,8 @@ class AlayaStore:
                 for piece in r.split("\n")
                 if piece.strip()
             ]
-            if not form_in_user_spans_for_kind(kind, ec_user_spans, grounded):
+            # T1: 承認の対の 決定 は、承認の span が形を担わないので (i) は真とみなす。
+            if approval_pair_only or not form_in_user_spans_for_kind(kind, ec_user_spans, grounded):
                 # 接地した往復 = assistant の span (圓成實 でない span) の往復だけ (spec §5.3/§7「その span が接地した往復」)
                 indexes = [sp.get("turn_index") for sp in decision["spans"] if sp.get("sansho") != "圓成實"]
                 if indexes and all(i in injected_by_turn for i in indexes):

@@ -51,6 +51,8 @@ ROLE_CONSTANTS = {
     "conjecture": "CONJECTURE_MARKERS",
     "decision_assert_in_sentence": "DECISION_ASSERT_IN_SENTENCE_MARKERS",
     "conjecture_in_sentence": "CONJECTURE_IN_SENTENCE_MARKERS",
+    "approval": "APPROVAL_MARKERS",
+    "approval_negation": "APPROVAL_NEGATION_MARKERS",
 }
 
 # --- 候補の語 (§1.3・§5。casefold 形) ----------------------------------------------------------------
