@@ -281,7 +281,8 @@ class TestIndexRelevanceLatency(_StateCase):
         inp = " ".join("".join(rng.choice("bcdefghijklmnopqrstuvwxyz") for _ in range(rng.randint(3, 8)))
                        for _ in range(4000))[:20000]
         span = "a." * 4000
-        self.assertLess(self._time_direct(inp, span), 1.0)
+        # 2.0: 全体実行の中では 1.0 をほぼ毎回超えた (単独 0.9 前後、2026-11-27 利用者裁定)
+        self.assertLess(self._time_direct(inp, span), 2.0)
         eng = self.write([_seed(i, ["zzq%d" % i], kind="決定", project=None,
                                 evidences=[{"source": "user", "span": span, "ledger_id": i, "life": 1}])
                           for i in range(1, 301)])
