@@ -733,14 +733,18 @@ class TestDecisionQuestionSentenceExcluded(_StoreCase):
             "決定",
         )
 
-    # 6. 却下側の印 (i) は疑の文でも変わらない
-    def test_rejection_marker_inside_question_keeps_decision(self):
+    # 6. 却下側の印 (i) も疑の文を除いた残りに当てる (H8 2026-11-27。旧: 疑の文でも変わらない)
+    def test_rejection_marker_inside_question_is_disposition(self):
         text = "A でなく B でいい？"
         self.assertTrue(any(m in text for m in DECISION_REJECT_MARKERS))
-        self.assertEqual(self._kind(text, text, ["B"]), "決定")
-        self.assertEqual(self._resolve([text], ["B"], sansho.as_window([_turn(text)]))[0], "決定")
-        # 縁が無くても (i) だけで 決定
-        self.assertEqual(self._resolve([text], ["zzz"])[0], "決定")
+        turn, prop, r = self._imp(text, [("user", text)], ["B"])
+        self.assertEqual(r["kind"], "性向")
+        self.assertEqual(r["decision"], "reject")   # 圓成實 の 性向 は形を担う span が無く 記録のみ (L')
+        self.assertEqual(self.store.list_seeds(), [])
+        self.assertEqual(self._resolve([text], ["B"], sansho.as_window([_turn(text)]))[0], "性向")
+        # 窓なしでも span 自身に ？ が在る。縁が無くても 性向
+        self.assertEqual(self._resolve([text], ["B"])[0], "性向")
+        self.assertEqual(self._resolve([text], ["zzz"])[0], "性向")
 
     # 7. `.` は語の中では切らない
     def test_dot_inside_a_word_does_not_split(self):

@@ -121,10 +121,10 @@ class TestResolveKindPromotion(_Case):
         kind, note = self.resolve("やり直してください。Flask ではなく FastAPI を使う", "FastAPI", ["FastAPI"])
         self.assertEqual(kind, "性向")
 
-    def test_pure_question_with_reject_marker_is_promoted_pin(self):
-        # (a) は 決定 の (i) と同じ span 全体の却下の印 (疑の文でも変わらない)。観測で見直す
-        self.assertEqual(self.resolve("Flask ではなく FastAPI にする？", "FastAPI", ["FastAPI"]), ("決定", PROMOTED))
-        self.assertEqual(self.resolve("Flask ではなく FastAPI にする？", "FastAPI", ["FastAPI"], kind="決定")[0], "決定")
+    def test_pure_question_with_reject_marker_is_not_promoted(self):
+        # (a) は 決定 の (i) と同じ、疑の文を除いた残りの却下の印。LongMemEval 段 2 の観測で見直した (2026-11-27 H8)
+        self.assertEqual(self.resolve("Flask ではなく FastAPI にする？", "FastAPI", ["FastAPI"]), ("性向", None))
+        self.assertEqual(self.resolve("Flask ではなく FastAPI にする？", "FastAPI", ["FastAPI"], kind="決定")[0], "性向")
 
     def test_fixed_phrases_do_not_promote(self):
         for t in ("SQLite の性能を気にした。", "SQLite のエラーを目にした。", "SQLite の性能を気にしました。", "SQLite のエラーを目にしました。"):
@@ -141,6 +141,8 @@ class TestResolveKindPromotion(_Case):
             ("Flask ではなく FastAPI を使う", "FastAPI を使う", ["FastAPI"]),
             ("Redis は採らない。Memcached を利用したい。", "Memcached", ["Memcached"]),
             ("SQLite にしたい。", "SQLite", ["SQLite"]),
+            ("Flask ではなく FastAPI にする？", "FastAPI", ["FastAPI"]),
+            ("Can I use a private key instead of a password?", "x", ["key"]),
         ]
         for t, content, conds in cases:
             promoted = self.resolve(t, content, conds)[0] == "決定"

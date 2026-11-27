@@ -195,16 +195,30 @@ def form_in_user_evidence(kind, evidences):
     spec 2026-10-30-absent-response-seeding §8: 発芽閾値 (`_threshold`) と imprint の越境判定 E が共有する
     唯一の述語。決定 = 却下側の印 (DECISION_REJECT_MARKERS)、回避策 = 入口 (USER_CORRECTION_MARKERS) だけを
     見る (対の判定に要る turn_index は evidence に無い)。`source` 欄の無い旧 evidence・空の span は数えない。
-    他の kind は偽。印の照合は `sansho._n` で正規化した span に当てる。"""
+    他の kind は偽。印の照合は `sansho._n` で正規化した span に当てる。
+    H8 (spec 2026-11-27-reject-marker-outside-doubt §8 T2): 決定 の却下の印は、span から疑の文を除いた残りに当てる
+    (窓なし = span 自身を `_sentence_pieces` で切る。`doubt_judgement` と同じ切り方。recall は ledger を読まない)。
+    順: ① 印が無ければ偽 (切らない)、② 疑の字が無ければ真 (切らない)、③ 切って残りに印があれば真。
+    回避策 の訂正の印は span 全体のまま。"""
     if kind == "決定":
         table = DECISION_REJECT_MARKERS
     elif kind == "回避策":
         table = USER_CORRECTION_MARKERS
     else:
         return False
+
+    def holds(span):
+        n = sansho._n(span)
+        if not _has_marker(n, table):
+            return False
+        if kind != "決定" or not _may_have_question(span):
+            return True
+        n, pieces = _sentence_pieces(span)
+        return _has_marker(_remainder_from_offset(n, n, pieces, 0), table)
+
     return any(
         isinstance(e, dict) and e.get("source") == "user" and isinstance(e.get("span"), str) and bool(e.get("span"))
-        and _has_marker(sansho._n(e["span"]), table)
+        and holds(e["span"])
         for e in (evidences or [])
     )
 
@@ -883,8 +897,8 @@ def _remainder_from_offset(n_span, n, pieces, offset):
 
 def _decision_form_in_grounded_spans(grounded_spans, conditions, window=None):
     """決定 の形 (spec 2026-10-30-decision-without-rejection §7 U と「疑の文の除外」)。純関数。圓成實 と判定された
-    span だけを見る (判定の無い str・圓成實 でない dict は数えない)。(i) その span の 1 本以上に却下側の印がある
-    (span 全体に当てる。疑の文でも変わらない)、または (ii) 1 本以上が 提案の縁 `conditions` の 1 語以上を含み、
+    span だけを見る (判定の無い str・圓成實 でない dict は数えない)。(i) その span の 1 本以上の疑の文を除いた残り
+    (下の (ii) と同じ残り) に却下側の印がある (H8 2026-11-27: 疑の文の中の却下の印は数えない)、または (ii) 1 本以上が 提案の縁 `conditions` の 1 語以上を含み、
     かつ同じ span に好みの印が無い (断定の形)。(ii) は span から **疑の文** (窓の user の本文を文に分けたとき、
     文末の記号列に ？/? を含む文) を除いた残りに当てる: 縁も好みの印も残りだけを見る。残りが空なら (ii) は
     成り立たない。語の途中の **半角** 「?」(`https://x.io/a?b=1`・`foo?.bar`) は文末でなく、全角の「？」は常に文末。
@@ -908,9 +922,10 @@ def _decision_form_in_grounded_spans(grounded_spans, conditions, window=None):
     for sp in grounded_spans:
         if not (isinstance(sp, dict) and sp.get("sansho") == "圓成實"):
             continue
-        if _has_marker(sansho._n(_span_text(sp) or ""), DECISION_REJECT_MARKERS):
+        remainders = remainders_of(sp)   # span ごとに 1 回だけ (往復ごとの本文の切りはキャッシュ済み)
+        if any(_has_marker(r, DECISION_REJECT_MARKERS) for r in remainders):
             return True
-        if any(holds(r) for r in remainders_of(sp)):
+        if any(holds(r) for r in remainders):
             return True
     return False
 
@@ -1223,7 +1238,7 @@ def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow
     決定 は 圓成實 と判定された span (`grounded_spans`・`sansho._n` 済みで照合) に (i) 却下側の印、または
     (ii) 断定の形 (提案の縁 `conditions` の 1 語以上を含み、好みの印を含まない span) を要求する。(ii) は span の
     **疑の文** (窓の user の本文を文に分けたとき文末の記号列に ？/? を含む文) を除いた残りで判定する (spec 同 §7「疑の文の
-    除外」。(i) は span 全体)。content の却下側の印は要らない (旧「両側必須」§11.6 / twin-seed-index spec §3.2 / 2026-10-30 spec §7 H は
+    除外」。(i) も同じ残りに当てる = H8 spec 2026-11-27-reject-marker-outside-doubt)。content の却下側の印は要らない (旧「両側必須」§11.6 / twin-seed-index spec §3.2 / 2026-10-30 spec §7 H は
     2026-10-30-decision-without-rejection §7 U で改訂)。どちらも無ければ 性向。content の好みの印の検査は残る。
     既定 `grounded_spans=()` は「圓成實 の引用なし」= 決定 は 性向 に落ちる。判定の無い str 項目は 圓成實 と見なさない。
     `conditions` の既定 `()` は (ii) が成り立たない (= 却下側の印だけが頼り)。呼び出し側は
@@ -1256,7 +1271,7 @@ def _resolve_kind(proposal, grounded_spans=(), conditions=(), window=None, allow
 
 def _promote_disposition(content, grounded_spans, conditions, window):
     """#117 (KP2a+b + KP6): 申告が 性向 (kind 欄の字面) のときだけ。全 span が 圓成實 (str は数えない・空は不可) で、
-    content の文末が好みの形でなく、(a) 圓成實 の span 全体に却下側の印、または (b) 1 本の残り (疑の文を除く) に縁があり好みの印が
+    content の文末が好みの形でなく、(a) 圓成實 の span の疑の文を除いた残りに却下側の印 (H8。好みの印の守りは span 全体)、または (b) 1 本の残り (疑の文を除く) に縁があり好みの印が
     無い (= 決定 の存続条件 (ii)) うえ文末に `decision_assert` の印 → 決定 に昇格 (昇格 ⊆ 決定 の存続)。
     印が無く (ii) の縁の条件だけ成り立つときは kind を変えず注記だけ (KP6・頻度を数える)。"""
     spans = list(grounded_spans or ())
@@ -1274,11 +1289,12 @@ def _promote_disposition(content, grounded_spans, conditions, window):
         n_span = sansho._n(_span_text(sp) or "")
         if _has_marker(n_span, USER_CORRECTION_MARKERS):
             continue   # 訂正の印のある span は 決定 へ上げない (spec §5.2・(a)(b) とも)
-        # (a) は 決定 の (i) と同じ span 全体の却下の印。ただし昇格は申告の上げなので、同じ span に好みの印があれば上げない
-        # (e1 #5「採らない」+「使いたい」・spec §5.2。決定 の存続より狭い = 昇格 ⊆ 存続)。
-        if _has_marker(n_span, DECISION_REJECT_MARKERS) and not _has_marker(n_span, PREFERENCE_SUFFIXES):
+        # (a) は 決定 の (i) と同じ、疑の文を除いた残りの却下の印 (H8)。ただし昇格は申告の上げなので、同じ span (全体) に
+        # 好みの印があれば上げない (e1 #5「採らない」+「使いたい」・spec §5.2。決定 の存続より狭い = 昇格 ⊆ 存続)。
+        remainders = remainders_of(sp)
+        if any(_has_marker(r, DECISION_REJECT_MARKERS) for r in remainders) and not _has_marker(n_span, PREFERENCE_SUFFIXES):
             return "決定", PROMOTION_NOTE
-        for r in remainders_of(sp):
+        for r in remainders:
             folded = r.casefold()
             if any(c in folded for c in conds) and not _has_marker(r, PREFERENCE_SUFFIXES):
                 form = True
