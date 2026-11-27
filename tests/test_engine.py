@@ -325,6 +325,14 @@ class TestParseProposals(unittest.TestCase):
         self.assertIn(phrase, engine._build_consolidate_prompt([], view))
         self.assertIn(phrase, engine._build_propose_prompt("u", "a"))
 
+    def test_kind_guide_asks_for_adopted_value_in_conditions(self):
+        # x64 の観測 (spec 2026-11-27-ratified-decision-design §8): 縁に題の語だけで採った値が無いと承認の対が立たない
+        view = {"related": [], "related_total": 0, "groups": [], "groups_total": 0}
+        for phrase in ("採った案の名か値 (推奨の発言に逐語で現れる語) を 1 つ以上入れ", "何についての決定か (題) も書く"):
+            self.assertIn(phrase, engine.KIND_GUIDE)
+            self.assertIn(phrase, engine._build_consolidate_prompt([], view))
+            self.assertIn(phrase, engine._build_propose_prompt("u", "a"))
+
     def test_kind_guide_decision_line_does_not_claim_demotion_to_disposition(self):
         # #114 U (spec 2026-10-30-decision-without-rejection §7 プロンプト追補): 片側の 決定 も 決定 のまま植わるので、
         # 決定 の行は「性向 として扱われる」と言わない。回避策 の行は今も真なので残る。
