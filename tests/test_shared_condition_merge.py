@@ -112,10 +112,19 @@ class TestTwoWordRule(_Case):
 
     def test_two_shared_of_three_merges(self):
         sid = self.plant()
-        text = "モジュール2の言語はRust3を採用 (Pythonは却下: ユーザーの明示的な決定)"
-        r = self.store.imprint([_turn(text)], _prop(text, ["モジュール2", "Rust3", "Python"]))
+        text = "モジュール2の言語はRustを採用 (Pythonは却下: ユーザーの明示的な決定)"
+        r = self.store.imprint([_turn(text)], _prop(text, ["モジュール2", "Rust", "Python"]))
         self.assertTrue(r.get("reinforced"))
         self.assertEqual(self.store.get_by_ids([sid])[0]["strength"], 2)
+
+    def test_two_shared_value_change_plants_new(self):
+        # Go2 -> Rust3 は数字を含む値の交代 (#3): 縁を 2 語共有しても併合せず new (値の食い違い)
+        sid = self.plant()
+        text = "モジュール2の言語はRust3を採用 (Pythonは却下: ユーザーの明示的な決定)"
+        r = self.store.imprint([_turn(text)], _prop(text, ["モジュール2", "Rust3", "Python"]))
+        self.assertTrue(r["is_new"])
+        self.assertEqual(len(self.store.list_seeds()), 2)
+        self.assertEqual(self.store.get_by_ids([sid])[0]["strength"], 1)
 
     def test_explicit_reinforce_two_shared_works(self):
         sid = self.plant()

@@ -154,6 +154,7 @@ _SC_NOTE = "圓成實 の種子 #{} と同じ内容の 依他起 の提案: 記�
 _R_REQ_NOTE = "R': 注入済みの種子 #{} の値の縁 ({}) は assistant の span にだけ在り、user の span は値を言っていない: 記録のみ、強度は変えない"
 _R_REQ_NEW_NOTE = "R': 注入済みの種子 #{} の値の縁 ({}) を assistant の span だけが言う復唱: 記録のみ、別に植えない"
 _R_NOTE = "R: 同 session で注入済みの種子 #{} を assistant だけが言い直した提案: 記録のみ、強度は変えない"
+_VD_NOTE = "値の食い違い: 種子 #{} の値の縁 ({}) と提案の値の縁 ({}) が食い違うため、この種子には併合・強めをしない"
 
 
 def _default_state():
@@ -483,6 +484,60 @@ def _has_preference_suffix(content):
     return _ends_with_marker(body, PREFERENCE_SUFFIXES)
 
 
+def _vd_texts_from_spans(spans):
+    """VD (#3, spec 2026-11-28-value-conflict-merge-design §3.4): span ごとに `_sentence_pieces` を 1 回だけ呼び、
+    `(said の照合形の列, user の照合形の列, 問いでない文の照合形の列)` を作る。said = 疑の文を除いた残り (window なし)、user = span 全文、
+    問いでない文 = `_vd_core` の (b) が見る単位。純関数・何も書かない。"""
+    said, user, units = [], [], []
+    for span in spans:
+        n, pieces = _sentence_pieces(span)
+        said.append(_remainder_from_offset(n, n, pieces, 0).casefold())
+        user.append(n.casefold())
+        units.extend(n[lo:hi].casefold() for lo, hi, question in pieces if not question)
+    return said, user, units
+
+
+def _value_carriers(seeds):
+    """T2 (#5): 値の食い違いを運ぶ向きつきの対 `{(y の id, x の id)}`。carrier(y, x) = y が 決定 で user の span を持ち、
+    `_vd_core(x の縁, y の縁, y の user の span)` が非空 (y が x に対して食い違う値を言う)。生きた 決定 (id が int) だけ。
+    読むときの派生・純関数で何も書かない (ledger は読まず span だけで切る)。計算の順は §3.4: 数字を含む縁を持たない種子は x にも y にもせず、
+    (project, 縁の 2 語の組) が同じ種子だけを候補にし、C が空になる対は飛ばし、y の span の文切りは種子ごとに 1 度だけ。"""
+    pre = {}
+    owners = {}
+    for seed in seeds:
+        sid = seed.get("id")
+        if not (is_live(seed) and _seed_kind(seed) == "決定" and _is_int(sid)):
+            continue
+        conds = _vd_conds(seed_conditions(seed))
+        if not conds[1]:
+            continue
+        pre[sid] = (seed, conds)
+        project = _seed_project(seed)
+        for pair in itertools.combinations(sorted({c for c in seed_conditions(seed) if c}), 2):
+            owners.setdefault((project, pair), set()).add(sid)
+    pairs = set()
+    for ids in owners.values():
+        for y in ids:
+            for x in ids:
+                if x != y:
+                    pairs.add((y, x))
+    texts = {}
+    carriers = set()
+    for y, x in sorted(pairs):
+        y_keys = pre[y][1][1]
+        if all(key in pre[x][1][0] for _spelling, key, _folded in y_keys):
+            continue   # C が空
+        if y not in texts:
+            user_spans = [
+                e["span"] for e in pre[y][0].get("evidences") or []
+                if has_user_span({"evidences": [e]}) and isinstance(e.get("span"), str)
+            ]
+            texts[y] = _vd_texts_from_spans(user_spans) if user_spans else None
+        if texts[y] is not None and _vd_core(pre[x][1], pre[y][1], texts[y]):
+            carriers.add((y, x))
+    return carriers
+
+
 def _twin_shadows(seeds):
     """依他起の双子の判定 (twin-seed-index spec §2.2/§2.3)。戻り値 `{id(H): E の seed id}`。
 
@@ -500,6 +555,7 @@ def _twin_shadows(seeds):
     shadows = {}
     if not buckets:
         return shadows
+    carriers = None   # T2 (#5): 値の食い違いを運ぶ H は E に隠されない。必要になったときだけ 1 度計算する
     for seed in seeds:
         if seed.get("sansho") != "依他起" or not is_live(seed):
             continue
@@ -512,6 +568,10 @@ def _twin_shadows(seeds):
                 if e_id != seed.get("id"):
                     counts[e_id] = counts.get(e_id, 0) + 1
         hits = [e_id for e_id, n in counts.items() if n >= HORIZONTAL_SUPERSEDE_SHARED_CONDITIONS]
+        if hits and _seed_kind(seed) == "決定":
+            if carriers is None:
+                carriers = _value_carriers(seeds)
+            hits = [e_id for e_id in hits if (seed.get("id"), e_id) not in carriers]
         if hits:
             shadows[id(seed)] = min(hits)
     return shadows
@@ -526,6 +586,10 @@ def _seed_groups_by_seed(seeds):
     1 件だけの連結は群として返さない。"""
     # id が int でない種子 (bool 含む) は成員にしない (member_ids を None 混じりにしない)。
     live = [s for s in seeds if is_live(s) and _is_int(s.get("id"))]
+    # T2 (#5): 値の食い違いを運ぶ種子 (carrier(y, x) の y) は群の計算から外す (単独で並ぶ)
+    carrier_ids = {y for y, _x in _value_carriers(live)}
+    if carrier_ids:
+        live = [s for s in live if s.get("id") not in carrier_ids]
     parent = list(range(len(live)))
 
     def find(i):
@@ -1234,6 +1298,79 @@ def _untouched_user_sentence(seed, new_conds, touched_text):
         if not any(any(w in sent for w in new) or any(w in sent for w in old_in_new) for _text, sent in members):
             return members[0][0]
     return None
+
+
+_VD_DIGIT = re.compile(r"[0-9]")
+
+
+def _vd_conds(conds):
+    """VD の縁の前計算 (#3)。戻り値 `(鍵の集合, [(保存の綴り, 鍵, 照合形)])`。後者は鍵が ASCII 数字を含む縁だけ (縁の順)。
+    鍵 = `_cond_key`、照合形 = `sansho._n` + casefold。str でない縁・鍵が空の縁は除く。"""
+    keys = set()
+    digits = []
+    for c in conds if isinstance(conds, (list, tuple)) else ():
+        if not isinstance(c, str):
+            continue
+        key = _cond_key(c)
+        if not key:
+            continue
+        keys.add(key)
+        if _VD_DIGIT.search(key):
+            digits.append((c, key, sansho._n(c).casefold()))
+    return keys, digits
+
+
+def _vd_texts(said_texts, user_texts):
+    """VD の本文の前計算 (#3)。戻り値 `(said の照合形の列, user の照合形の列, said を 1 つずつ文に切った問いでない文の照合形の列)`。"""
+    said, user, units = [], [], []
+    for t in said_texts:
+        n, pieces = _sentence_pieces(t)
+        said.append(sansho._n(t).casefold())
+        units.extend(n[lo:hi].casefold() for lo, hi, question in pieces if not question)
+    for t in user_texts:
+        user.append(sansho._n(t).casefold())
+    return said, user, units
+
+
+def _vd_core(old, new, texts):
+    """VD の本体 (#3, spec 2026-11-28-value-conflict-merge-design §3.2)。`old` / `new` = `_vd_conds` の戻り値、`texts` = `_vd_texts` の戻り値。
+    C = 新の縁のうち 鍵が旧の鍵に無く・数字を含み・said に在るもの。O = 旧の縁のうち数字を含むもの。どちらかが空なら []。
+    (a') 旧の数字の縁 (O) のどれかを user の本文が言っていなければ C 全体 (黙った交代)。
+    (b) そうでなければ、問いでない文のうち O の縁が C の縁より前に出る文 (「旧 から 新」の向き) があれば、その C (名指しの交代)。
+    純関数で何も書かない。`_value_divergence` の戻り値は C の保存の綴り (新の縁の順)。"""
+    old_keys, old_digits = old
+    new_keys, new_digits = new
+    said, user, units = texts
+    if not old_digits or not new_digits:
+        return []
+    cands = []
+    seen = set()
+    for spelling, key, folded in new_digits:
+        if key in old_keys or key in seen:
+            continue
+        if any(folded in t for t in said):
+            seen.add(key)
+            cands.append((spelling, key, folded))
+    if not cands:
+        return []
+    if any(not any(o_folded in t for t in user) for _s, _k, o_folded in old_digits):
+        return [c[0] for c in cands]
+    hit = []
+    for spelling, key, folded in cands:
+        for u in units:
+            j = u.rfind(folded)
+            if j < 0:
+                continue
+            if any(0 <= u.find(o_folded) < j for _s, o_key, o_folded in old_digits if o_key != key):
+                hit.append(spelling)
+                break
+    return hit
+
+
+def _value_divergence(old_conds, new_conds, said_texts, user_texts):
+    """VD (#3): 旧い種子の縁 `old_conds` と提案の縁 `new_conds` の値 (数字を含む縁) の食い違い。当たった新の縁の列 (無ければ [])。
+    `said_texts` = 提案の 圓成實 の span の疑の文を除いた残り、`user_texts` = 同じ span の逐語。判定は `_vd_core`。純関数。"""
+    return _vd_core(_vd_conds(old_conds), _vd_conds(new_conds), _vd_texts(said_texts, user_texts))
 
 
 def doubt_judgement(seed, shown=()):
@@ -2838,7 +2975,32 @@ class AlayaStore:
             return sp_cache["u"]
 
         sp_cache = {}
+        vd_cache = {}
         sp_excluded_target = None
+
+        def _vd_of(seed):
+            """VD (#3, spec 2026-11-28-value-conflict-merge-design §3.3): 決定 の提案 (人の置き換えを除く) の値の縁が旧い種子 `seed` の値の縁と食い違うか。
+            食い違う新の縁の列 (空 = 食い違わない)。ゲートの span・grounded・種子の縁だけを読み、提案の自称は読まない。1 回の imprint で種子ごとに 1 度だけ計算する。"""
+            if kind != "決定" or replacement_for is not None:
+                return []
+            sid = seed.get("id")
+            if sid not in vd_cache:
+                if "vd" not in sp_cache:
+                    remainders_of = _span_remainders_fn(window)
+                    said, user = [], []
+                    for sp in decision["spans"]:
+                        if sp.get("sansho") == "圓成實":
+                            said.extend(remainders_of(sp))
+                            user.append(_span_text(sp) or "")
+                    sp_cache["vd"] = (_vd_conds(grounded), _vd_texts(said, user))
+                new_c, texts = sp_cache["vd"]
+                old_c = _vd_conds(seed_conditions(seed))
+                found = _vd_core(old_c, new_c, texts)
+                vd_cache[sid] = found
+                if found:
+                    _note(_VD_NOTE.format(sid, "・".join(d[0] for d in old_c[1]), "・".join(found)))
+            return vd_cache[sid]
+
         action = proposal.get("action")
         if action not in VALID_ACTIONS:
             action = "new"
@@ -2982,7 +3144,8 @@ class AlayaStore:
                 if not _shares_condition(target, grounded):
                     # D / R の後に置く: user の逐語を持つ種子・注入済みの種子への誤 target は記録のみが安全側 (人の裁定)。
                     _note("reinforce 不可: target と縁を必要語数共有しないため new として扱う")
-                else:
+                elif not _vd_of(target):
+                    # VD (#3): 値の縁が食い違うなら強めず、類似併合へ進む (そこでも同じ _vd_of で target は候補から外れる = この種子には併合しない。ほかの種子に併合するか new になるかは併合の規則どおり)
                     return _reinforce(target)
 
         # new: 同クラス∧同 kind∧同 project∧superseded でない∧類似度>=閾値 の既存種子があれば
@@ -3013,7 +3176,7 @@ class AlayaStore:
             if score < MERGE_SIMILARITY_THRESHOLD:
                 continue
             guard = is_withdrawn(seed) or shadows.get(id(seed)) is not None
-            if not guard and not _shares_condition(seed, grounded):
+            if not guard and (not _shares_condition(seed, grounded) or _vd_of(seed)):
                 continue
             if score > best_score:
                 best_score = score
