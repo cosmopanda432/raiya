@@ -1165,5 +1165,42 @@ class TestInspectDoesNotLoadBackend(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "False False")
 
 
+class TestHistoryLineStrength(unittest.TestCase):
+    """supersede の強度 (spec 2026-11-28-supersede-strength-design §5 T2): history の項の `strength` を履歴の行に出す。"""
+
+    ROW = {"life": 3, "reason": "superseded", "content": "猫が好き"}
+
+    def test_superseded_row_shows_strength(self):
+        self.assertEqual(inspect_cli._history_line(dict(self.ROW, strength=3)),
+                         "    life=3 superseded: 猫が好き (強度 3)")
+
+    def test_row_without_strength_unchanged(self):
+        self.assertEqual(inspect_cli._history_line(dict(self.ROW)), "    life=3 superseded: 猫が好き")
+
+    def test_bool_strength_not_shown(self):
+        self.assertEqual(inspect_cli._history_line(dict(self.ROW, strength=True)), "    life=3 superseded: 猫が好き")
+
+
+class TestWhyShowsHistoryStrength(_StateCase):
+    """supersede した種子に why を当てると、旧い強度が履歴の行に出る (text) / history の項に入る (--json)。"""
+
+    def _superseded_seed(self):
+        _write_state(self.state, [_seed(1, ["猫", "犬"], strength=3, project=None, content="猫が好き")])
+        turn = alaya_mod.sansho.Turn(user_text="犬が好き p/ 猫犬", assistant_text="")
+        proposal = {"content": "犬が好き", "conditions": ["猫", "犬"], "polarity": "無記", "kind": "所在",
+                    "action": "supersede", "target_id": 1, "evidence": [{"source": "user", "span": "犬が好き p/"}]}
+        self.assertTrue(self.engine().imprint([turn], [proposal])[0]["superseded"])
+
+    def test_why_text_and_json_show_old_strength(self):
+        self._superseded_seed()
+        code, out, _ = self.run_cli("why", "1")
+        self.assertEqual(code, 0)
+        self.assertEqual([ln for ln in out.splitlines() if "(強度 3)" in ln], ["    life=3 superseded: 猫が好き (強度 3)"])
+        code, out, _ = self.run_cli("--json", "why", "1")
+        self.assertEqual(code, 0)
+        history = json.loads(out)["seed"]["history"]
+        self.assertEqual([h["strength"] for h in history if h["reason"] == "superseded"], [3])
+
+
 if __name__ == "__main__":
     unittest.main()

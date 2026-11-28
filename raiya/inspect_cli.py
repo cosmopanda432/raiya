@@ -223,6 +223,9 @@ def _withdrawn_lines(seed):
 
 def _history_line(h):
     line = "    life={} {}: {}".format(h.get("life"), _esc(h.get("reason")), _esc(h.get("content", "")))
+    strength = h.get("strength")
+    if isinstance(strength, (int, float)) and not isinstance(strength, bool):
+        line += " (強度 {})".format(strength)
     rec = h.get("withdrawn") if isinstance(h.get("withdrawn"), dict) else (
         h.get("restored") if isinstance(h.get("restored"), dict) else None)
     if rec is not None:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T13:36:53.026128+00:00",
+  "generated_at": "2026-11-28T12:11:35.946986+00:00",
   "§5.1_決定論fixture": {
     "捏造遮断率": {
       "非接地提案数": 4,
@@ -82,7 +82,7 @@
       ]
     },
     "hit": true,
-    "judged_at": "2026-11-10T13:36:53.026115+00:00"
+    "judged_at": "2026-11-28T12:11:35.946971+00:00"
   },
   "形の検査": {
     "件数": 16,
@@ -699,7 +699,7 @@
           "seed_id": 2,
           "log_rows": 1,
           "seeds": 2,
-          "h_strength": 3,
+          "h_strength": 2,
           "h_evidences": 1,
           "superseded": true
         },
@@ -711,7 +711,7 @@
           "seed_id": 2,
           "log_rows": 1,
           "seeds": 2,
-          "h_strength": 3,
+          "h_strength": 2,
           "h_evidences": 1,
           "superseded": true
         }

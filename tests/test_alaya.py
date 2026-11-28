@@ -1057,13 +1057,14 @@ class TestImprintWindowAndActions(unittest.TestCase):
         seed = self.store.get_by_ids([seed_id])[0]
         self.assertEqual(seed["content"], "緑茶が好き")
         self.assertEqual(seed["conditions"], ["緑茶"])
-        self.assertEqual(seed["strength"], 2)
+        self.assertEqual(seed["strength"], 1)
         self.assertEqual(len(seed["evidences"]), 2)
         self.assertEqual(len(seed["history"]), 1)
         self.assertEqual(seed["history"][0]["content"], "コーヒーが好き")
         self.assertEqual(seed["history"][0]["conditions"], ["コーヒー"])
         self.assertEqual(seed["history"][0]["sansho"], "圓成實")
         self.assertEqual(seed["history"][0]["reason"], "superseded")
+        self.assertEqual(seed["history"][0]["strength"], 1)
         self.assertEqual(self.store.seed_count(), 1)
 
     def test_etaki_cannot_supersede_enjoujitsu_and_falls_back_to_new_with_note(self):

@@ -8,7 +8,9 @@ LLM に一切依存しない純粋ロジック。種子の発芽・熏習を管�
     id           連番
     content      傾向・記憶の一文。LLM の要約。併合/reinforce では不変。書き換わるのは
                  supersede のときだけで、旧値は history に残る (改修4 §5)
-    strength     熏習強度 (熏習のたび、接地した往復の数だけ加算。各 span は
+    strength     熏習強度 (熏習のたび、接地した往復の数だけ加算。ただし supersede で値が替わるときは
+                 今回の接地分から数え直す (旧い強度は history の superseded の項の `strength`)。
+                 同じ記 (`_same_claim`) の supersede は変えない。各 span は
                  sansho.classify_span_in_window が返す 1 往復に帰属する -- 同じ span が
                  窓内の複数の往復に現れても 1 往復ぶんにしかならない。同じ往復から何本
                  span を引いても +1。1 往復の提案は常に +1)
@@ -33,7 +35,8 @@ LLM に一切依存しない純粋ロジック。種子の発芽・熏習を管�
                  source は三性判定から導出する (提案の自称は読まない=EXE-15)。ledger_id が
                  None (台帳に無い往復) のときだけ turn スナップショットを併せ持つ
     history      [{life, content, conditions, sansho, polarity, reason}] の追記専用リスト。
-                 supersede で置換される直前の旧値を積む (改修4 §5)
+                 supersede で置換される直前の旧値を積む (改修4 §5)。reason="superseded" の項は
+                 任意キー `strength` = 置き換える直前の強度を持つ (無い項は「記録なし」と読む)
     planted_at   植えられた生 (life) 番号
     last_fired   最後に発芽した生番号 (未発芽なら None)
     fire_count   発芽回数
@@ -2615,7 +2618,8 @@ class AlayaStore:
         4. 圓成實/依他起: proposal["action"] に従う。
            - "supersede" + target_id: 提案クラスの rank が target 以下 (圓成實は何でも、
              依他起は依他起のみ=越境禁止) なら、旧値を history に追記して content/conditions/
-             polarity/sansho を置換、evidences 追記、strength += 接地した往復の数。
+             polarity/sansho を置換、evidences 追記。strength は今回の接地した往復の数から数え直し
+             (旧い強度は history の項の `strength`)。同じ記 (content・縁の鍵の集合・class が同じ) は変えない。
            - "reinforce" + target_id: 同クラス∧同 kind∧同 project∧superseded でない∧取り下げ中でない なら
              strength += 接地した往復の数・evidences 追記・content 不変 (polarity は見ない=改修5 §5.1)。
            - 条件を満たさない supersede/reinforce と "new": 類似度併合 (同クラス∧同 kind∧同
@@ -3061,12 +3065,16 @@ class AlayaStore:
                 sp_excluded_target = target
                 _note("supersede 不可: 旧の記「{}」に新しい言が触れていない(部分交代)ため new として扱う".format(sp_untouched))
             else:
-                target.setdefault("history", []).append(_hist(target, "superseded"))
+                # 強度 (spec 2026-11-28-supersede-strength-design §3.2): 値が替われば今回の接地分から数え直し、
+                # 置き換える直前の強度は history の項に残す。同じ記 (content・縁の鍵の集合・class が同じ) は強度を変えない。
+                same = _same_claim(target, content, grounded, sansho_class)
+                target.setdefault("history", []).append(_hist(target, "superseded", strength=target["strength"]))
                 target["content"] = content
                 target["conditions"] = list(grounded)
                 target["polarity"] = polarity
                 target["sansho"] = sansho_class
-                target["strength"] += gained
+                if not same:
+                    target["strength"] = gained
                 target.setdefault("evidences", []).extend(evidence_entries)
                 # 横断 supersede (改修5 §5.2): 同 project ∧ 同 kind ∧ 新しい提案の接地済み縁を
                 # HORIZONTAL_SUPERSEDE_SHARED_CONDITIONS 語以上共有する他の種子に superseded_by を
@@ -3448,6 +3456,23 @@ def _cond_key(c):
     if len(k) >= 2 and k.endswith("/"):
         k = k[:-1]
     return k
+
+
+def _same_claim(seed, content, conditions, sansho_class):
+    """supersede で値が替わっていないか (spec 2026-11-28-supersede-strength-design §3.2)。純関数・何も書かない。
+    真 = class が同じ ∧ content が `sansho._n` + strip + casefold で同一 (空は偽) ∧ 縁の鍵 (`_cond_key`、空の鍵は除く) の集合が同じ。
+    類似度は使わない (1 字違えば偽)。種子の欄・ゲートの class・提案の content と縁だけを読み、提案の自称は読まない。"""
+    if seed.get("sansho") != sansho_class:
+        return False
+    old = seed.get("content")
+    if not isinstance(old, str) or not isinstance(content, str):
+        return False
+    new_key = sansho._n(content).strip().casefold()
+    if not new_key or new_key != sansho._n(old).strip().casefold():
+        return False
+    a = {k for k in (_cond_key(c) for c in seed_conditions(seed) if isinstance(c, str)) if k}
+    b = {k for k in (_cond_key(c) for c in (conditions if isinstance(conditions, list) else []) if isinstance(c, str)) if k}
+    return a == b
 
 
 def _shares_condition(seed, conditions, min_shared=None):

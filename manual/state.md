@@ -119,7 +119,9 @@ content      傾向・記憶の一文。LLM の要約。ゲートは検収しな
 strength     熏習強度 (熏習のたび、接地した往復の数だけ加算。各 span は
              `sansho.classify_span_in_window` が返す 1 往復に帰属する -- 同じ span が
              窓内の複数の往復に現れても 1 往復ぶんにしかならない。同じ往復から何本
-             span を引いても +1。1 往復の提案は常に +1)
+             span を引いても +1。1 往復の提案は常に +1)。ただし `supersede` で値が替わる
+             ときは今回の接地分から数え直す (旧い強度は history の superseded の項の
+             `strength`)。content・縁の鍵の集合・class がすべて同じ supersede は強度を変えない
 conditions   縁 = 発芽条件の話題語リスト (往復本文に実在が確認された語のみ)
 polarity     善 / 不善 / 無記
 sansho       圓成實 / 依他起 のいずれか。熏習時に sansho.py が決定論で確定する。併合/
@@ -132,7 +134,8 @@ evidences    [{life, source: "user"|"assistant", span, ledger_id}] の追記専�
              source は三性判定から導出する (提案の自称は読まない=EXE-15)。ledger_id が
              None (台帳に無い往復) のときだけ turn スナップショットを併せ持つ
 history      [{life, content, conditions, sansho, polarity, reason}] の追記専用リスト。
-             supersede で置換される直前の旧値を積む (改修4 §5)
+             supersede で置換される直前の旧値を積む (改修4 §5)。reason="superseded" の項は
+             任意キー `strength` (置き換える直前の強度) を持つ。キーが無い項は「記録なし」
 planted_at   植えられた生 (life) 番号
 last_fired   最後に発芽した生番号 (未発芽なら None)
 fire_count   発芽回数
@@ -146,7 +149,8 @@ miss_streak  連続不発芽の生の数 (観測用。枯死判定には使わ�
 - **枯死は改修4 で撤去した**: 種子は減衰も削除もされない (KUN-3 恒隨轉・業力保存)。
   `miss_streak` (連続不発芽の生の数) は観測用に残るだけで、発芽の可否には使わない。
 - **content が書き換わるのは `supersede` のときだけ**で、旧値は `history` に積まれる
-  (併合/`reinforce` は従来どおり content 不変・strength と `evidences` だけが増える)。
+  (併合/`reinforce` は従来どおり content 不変・strength と `evidences` だけが増える。
+  `supersede` は値が替われば strength を今回の接地分から数え直し、旧い強度は `history` に残す)。
 - `evidences[]` は台帳の行を `ledger_id` で指す。`ledger_id` が `None` (台帳に無い往復=
   `imprint` を直接呼んだ場合) のときだけ往復のスナップショットを併せ持つ。
 - 想起時には、発芽した種子の自己物語に加えて**記録の索引** (`INDEX_MAX` = 30 件まで) が

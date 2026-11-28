@@ -92,7 +92,7 @@ class TestTwinMatch(_TmpCase):
         self.assertEqual(r["decision"], "依他起")
         self.assertTrue(r["superseded"])
         self.assertEqual(r["seed"]["id"], 2)
-        self.assertEqual(store.get_by_ids([2])[0]["strength"], 3)
+        self.assertEqual(store.get_by_ids([2])[0]["strength"], 2)
 
     def test_withdrawn_e_no_longer_shadows(self):
         store = self.store(_pair())

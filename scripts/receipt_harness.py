@@ -851,7 +851,7 @@ def run_twin_match_harness():
     _case("explicit_reinforce_target_twin_is_matched", shadowed,
           lambda d: _norm(_run(d, _pair(), {"action": "reinforce", "target_id": 2})))
     _case("supersede_target_twin_goes_through",
-          dict(reinforced, decision="依他起", seed="present", seeds=2, h_strength=3, superseded=True),
+          dict(reinforced, decision="依他起", seed="present", seeds=2, h_strength=2, superseded=True),
           lambda d: _norm(_run(d, _pair(), {"action": "supersede", "target_id": 2})))
     _case("withdrawn_e_no_longer_shadows", dict(reinforced, seeds=2),
           lambda d: _norm(_run(d, _pair(), withdraw_e=True)))
